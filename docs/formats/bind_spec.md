@@ -61,6 +61,8 @@ CanonicalAllBlock      → 60 00 00 00 CC 4F F4 60 → 0E 00 00 00 = 14
 | Pattern | Classification | Example |
 |---------|---------------|---------|
 | Equipment slot keyword | Item type | `Hat`, `Robe`, `Athame`, `Deck` |
+| `Weapon` | Wand type | Wands use `Weapon` not `Wand` in BINd data |
+| Wand subtype keyword | Weapon model | `Spear`, `Staff`, `Sword`, `Relic`, `Banner`, `Fist`, `TwoHandedSword` |
 | `FLAG_*` | Item flag | `FLAG_NoAuction`, `FLAG_CrownsOnly` |
 | `SOCKETTYPE_*` | Jewel socket | `SOCKETTYPE_TEAR`, `SOCKETTYPE_CIRCLE` |
 | `RT_*` | Rarity tier | `RT_COMMON`, `RT_EPIC`, `RT_LEGENDARY` |
