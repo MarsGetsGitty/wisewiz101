@@ -1,16 +1,14 @@
 # BINd Binary Serialization Format Specification
 
-> **Version:** 0.1 (Draft) — Active reverse-engineering in progress  
-> **Status:** Partial — header and string extraction understood, full record structure TBD  
+> **Version:** 0.2 — String encoding and stat values decoded  
+> **Status:** Partial — usable for gear extraction, full record framing TBD  
 > **Last Updated:** 2026-02-23
 
 ## Overview
 
 BINd is KingsIsle's proprietary binary serialization format. Files with `.xml` extensions inside WAD archives are **not** plaintext XML — they are BINd-encoded binary data. The game's engine deserializes these at runtime into PropertyClass object trees.
 
-## What We Know
-
-### Header (12 bytes)
+## Header (12 bytes)
 
 | Offset | Size | Type     | Description                                    |
 |--------|------|----------|------------------------------------------------|
@@ -18,61 +16,79 @@ BINd is KingsIsle's proprietary binary serialization format. Files with `.xml` e
 | 4      | 4    | uint32LE | Serializer version (observed: `7`)             |
 | 8      | 4    | uint32LE | Root class hash (observed: `0x3B1F88D1` for items) |
 
-### Body Structure (Under Investigation)
+## String Encoding (CONFIRMED)
 
-The body contains a tree of PropertyClass objects. Based on hex analysis of gear files:
+Strings use a **length×2 prefix byte**: a single byte `B` followed by `B ÷ 2` ASCII characters.
 
-- **Property hashes** — 4-byte little-endian values that identify properties by hash (not name)
-- **Strings** — embedded with a length byte, containing:
-  - Item names (e.g. `Athame-AQ-L90-001`)
-  - Type identifiers (e.g. `Athame`, `Hat`, `Robe`, `Deck`)
-  - Stat names (e.g. `CanonicalMaxHealth`, `CanonicalAllDamage`)
-  - Flags (e.g. `FLAG_NoAuction`)
-  - Socket types (e.g. `SOCKETTYPE_TEAR`, `SOCKETTYPE_CIRCLE`)
-  - Rarity (e.g. `RT_COMMON`, `RT_EPIC`)
-  - Locale keys (e.g. `Items_00008758`)
-  - Model paths (e.g. `Mob|WorldData|Athames/AQ/AQ_Athames_Gold.nif`)
-  - Texture paths (`.dds` files for male/female variants)
-- **Nested objects** — sub-records for behaviors (`RenderBehavior`, `JewelSocketBehavior`, `BasicDeckBehavior`)
-- **Numeric values** — stat values appear as integers near their stat name strings
-- **Enum values** — strings like `OT_UNDEFINED`, `ROP_AND`, `OPERATOR_GREATER_THAN_EQ`
+| Prefix Byte | ÷2 | Actual String | Match? |
+|-------------|-----|---------------|--------|
+| `0x0C` (12) | 6   | `Athame`      | ✅ |
+| `0x1C` (28) | 14  | `FLAG_NoAuction` | ✅ |
+| `0x22` (34) | 17  | `Athame-AQ-L90-001` | ✅ |
+| `0x30` (48) | 24  | `Athame-AQ-L90-001.AdjRef` | ✅ |
 
-### Observed String Fields in Gear Files
+**Why ×2?** The engine likely uses `wchar_t` (2 bytes/char) internally. The length byte stores the internal byte count, but the serialized file uses single-byte ASCII. See [002_reverse_engineering_method.md](../decisions/002_reverse_engineering_method.md) for the full discovery process.
 
-| Field | Example Values | Purpose |
-|-------|---------------|---------|
-| Item name | `Athame-AQ-L90-001` | Internal identifier |
-| AdjRef | `Athame-AQ-L90-001.AdjRef` | Adjacency reference |
-| Type | `Athame`, `Hat`, `Robe`, `Deck`, `Amulet` | Equipment slot |
-| Flags | `FLAG_NoAuction` | Item restrictions |
-| Locale key | `Items_00008758` | Links to display name in locale files |
-| Object type | `OT_UNDEFINED` | Object classification |
-| Rarity | `RT_COMMON`, `RT_EPIC` | Item rarity tier |
-| School | `All`, `Fire`, `Ice`, etc. | Magic school |
-| Socket types | `SOCKETTYPE_TEAR`, `SOCKETTYPE_CIRCLE`, `SOCKETTYPE_TRIANGLE` | Jewel socket slots |
-| Stats | `CanonicalMaxHealth`, `CanonicalMaxMana`, `CanonicalPowerPip`, `CanonicalAllDamage`, `CanonicalAllBlock`, `CanonicalLifeHealing` | Gear stat bonuses |
-| Behaviors | `RenderBehavior`, `JewelSocketBehavior`, `BasicDeckBehavior` | Object behavior components |
-| Model paths | `Mob\|WorldData\|Athames/AQ/AQ_Athames_Gold.nif` | 3D model reference |
-| Gender | `MALE`, `FEMALE` | Visual variant |
-| Hair | `NO_HAIR`, `NONE` | Hair visibility flag |
+## Stat Value Encoding (CONFIRMED)
 
-### Community Reference
+Stat entries follow this exact byte pattern:
 
-- **[wizspoil/wiztype](https://github.com/wizspoil/wiztype)** — Type dumper that extracts class/property definitions from live game memory as JSON. Requires a running Wizard101 instance.
-- **[StarrFox/wizwalker](https://github.com/StarrFox/wizwalker)** — Scripting API that reads game memory. Has WAD reader but no BINd file parser.
-- **[latelylk/On-Wiz](https://github.com/latelylk/On-Wiz)** — Documentation of Wizard101 internals.
+```
+[hash 0x78F28C29] ... [length_byte] [stat_name_string] [8-byte gap] [int32LE value]
+```
+
+### Known Constants
+
+| Constant | Value | Meaning |
+|----------|-------|---------|
+| Stat property hash | `0x78F28C29` | Precedes every `Canonical*` stat entry |
+| Stat value gap | `60 00 00 00 CC 4F F4 60` | 8 bytes between stat name and its int32 value |
+
+### Example (Athame-AQ-L90-001)
+
+```
+Stat Name              → Gap (8 bytes)          → Value (int32LE)
+CanonicalMaxHealth     → 60 00 00 00 CC 4F F4 60 → 3F 01 00 00 = 319
+CanonicalMaxMana       → 60 00 00 00 CC 4F F4 60 → D1 00 00 00 = 209
+CanonicalPowerPip      → 60 00 00 00 CC 4F F4 60 → 74 00 00 00 = 116
+CanonicalLifeHealing   → 60 00 00 00 CC 4F F4 60 → 74 00 00 00 = 116
+CanonicalAllDamage     → 60 00 00 00 CC 4F F4 60 → 72 00 00 00 = 114
+CanonicalAllBlock      → 60 00 00 00 CC 4F F4 60 → 0E 00 00 00 = 14
+```
+
+## String Field Classification
+
+| Pattern | Classification | Example |
+|---------|---------------|---------|
+| Equipment slot keyword | Item type | `Hat`, `Robe`, `Athame`, `Deck` |
+| `FLAG_*` | Item flag | `FLAG_NoAuction`, `FLAG_CrownsOnly` |
+| `SOCKETTYPE_*` | Jewel socket | `SOCKETTYPE_TEAR`, `SOCKETTYPE_CIRCLE` |
+| `RT_*` | Rarity tier | `RT_COMMON`, `RT_EPIC`, `RT_LEGENDARY` |
+| `Canonical*` | Stat name | `CanonicalMaxHealth`, `CanonicalAllDamage` |
+| `Items_XXXXXXXX` | Locale key | `Items_00008758` → display name in lang files |
+| `*Behavior` | Behavior component | `RenderBehavior`, `JewelSocketBehavior` |
+| `.AdjRef` suffix | Adjacency ref | `Athame-AQ-L90-001.AdjRef` |
+| School name | School | `All`, `Fire`, `Ice`, `Storm`, `Balance` |
+| `OT_*` | Object type enum | `OT_UNDEFINED` |
+| `ROP_*` | Requirement operator | `ROP_AND` |
+| `OPERATOR_*` | Comparison op | `OPERATOR_GREATER_THAN_EQ` |
+| `MALE` / `FEMALE` | Gender variant | Visual model variant |
+| `*.nif` | 3D model path | `Mob|WorldData|Athames/AQ/AQ_Athames_Gold.nif` |
+| `*.dds` | Texture path | `Textures/Characters/Boy/...Hood_013.dds` |
 
 ## What We Don't Know Yet
 
-1. **Exact record framing** — how are property boundaries delimited? Is it type-tag + length, or fixed offsets?
-2. **Hash-to-name mapping** — the 4-byte property hashes need a lookup table (wiztype JSON could provide this)
-3. **Nested object depth** — how deep can the object tree go?
-4. **Numeric encoding** — are stat values int32, float32, or variable?
+1. **Full record framing** — exact byte-level structure of property records beyond strings/stats
+2. **Hash-to-name mapping** — a complete table of all 4-byte property hashes (wiztype could provide)
+3. **Nested object depth** — how behavior sub-objects are delimited
+4. **Non-Canonical numeric fields** — values not associated with a `Canonical*` string
 
-## Parser Strategy
+## Related Documents
 
-See [Design Decision: Parser Approach](../decisions/001_parser_approach.md)
+- [ADR-001: Parser Approach](../decisions/001_parser_approach.md)
+- [ADR-002: Reverse Engineering Method](../decisions/002_reverse_engineering_method.md)
+- [Gear Taxonomy](../data/gear_taxonomy.md)
 
 ## Implementation
 
-See [`src/bind_parser.py`](../../src/bind_parser.py) (in progress)
+See [`src/bind_parser.py`](../../src/bind_parser.py) — validated against 3 item types.
