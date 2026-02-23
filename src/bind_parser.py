@@ -27,8 +27,26 @@ STAT_VALUE_GAP = bytes([0x60, 0x00, 0x00, 0x00, 0xCC, 0x4F, 0xF4, 0x60])
 # Equipment slot types (as they appear in BINd strings)
 EQUIPMENT_TYPES = frozenset({
     "Hat", "Robe", "Shoes", "Shoe", "Boot", "Boots",
-    "Wand", "Athame", "Amulet", "Ring", "Deck",
+    "Wand", "Weapon", "Athame", "Amulet", "Ring", "Deck",
 })
+
+# Wand-specific subtypes (weapon model categories)
+WAND_SUBTYPES = frozenset({
+    "Spear", "Staff", "Sword", "Relic", "Banner", "Fist",
+    "TwoHandedSword", "OFFHAND",
+})
+
+# Path-based type detection fallback (when BINd strings don't have a type)
+PATH_TYPE_MAP = {
+    "/Hats/": "Hat", "/Hat/": "Hat",
+    "/Robes/": "Robe", "/Robe/": "Robe",
+    "/Shoes/": "Shoes", "/Boots/": "Shoes", "/Boot/": "Shoes",
+    "/Wands/": "Wand", "/Wand/": "Wand",
+    "/Athames/": "Athame", "/Athame/": "Athame",
+    "/Amulets/": "Amulet", "/Amulet/": "Amulet",
+    "/Rings/": "Ring", "/Ring/": "Ring",
+    "/Decks/": "Deck", "/Deck/": "Deck",
+}
 
 # Socket types
 SOCKET_TYPES = frozenset({
@@ -62,6 +80,7 @@ class GearItem:
     name: str = ""                    # Internal item name
     display_name_key: str = ""        # Locale key (e.g. Items_00008758)
     item_type: str = ""               # Equipment slot (Hat, Robe, etc.)
+    wand_subtype: str = ""            # Wand weapon subtype (Spear, Staff, etc.)
     school: str = ""                  # Magic school
     rarity: str = ""                  # RT_COMMON, RT_EPIC, etc.
     flags: list[str] = field(default_factory=list)
@@ -72,6 +91,7 @@ class GearItem:
     set_name: str = ""                # Set bonus name (if any)
     level_req: int = 0                # Required level (from path heuristic)
     model_path: str = ""              # NIF model path
+    type_source: str = ""             # How the type was determined (string/path)
     bind_version: int = 0
     class_hash: int = 0
 
@@ -86,7 +106,7 @@ class GearItem:
 
     def to_dict(self) -> dict:
         """Convert to a plain dict for JSON serialization."""
-        return {
+        d = {
             "source_path": self.source_path,
             "name": self.name,
             "display_name_key": self.display_name_key,
@@ -100,7 +120,11 @@ class GearItem:
             "adjref": self.adjref,
             "set_name": self.set_name,
             "level_req": self.level_req,
+            "type_source": self.type_source,
         }
+        if self.wand_subtype:
+            d["wand_subtype"] = self.wand_subtype
+        return d
 
 
 class BINdParser:
@@ -137,6 +161,10 @@ class BINdParser:
 
         # Try to extract level from source path
         item.level_req = self._level_from_path(source_path)
+
+        # Path-based type fallback if no type found in strings
+        if not item.item_type:
+            self._type_from_path(item, source_path)
 
         return item
 
@@ -185,10 +213,18 @@ class BINdParser:
 
             # Equipment type
             if text in EQUIPMENT_TYPES and not item.item_type:
-                item.item_type = text
-                # Normalize Shoes/Shoe/Boot -> Shoes
-                if text in ("Shoe", "Boot", "Boots"):
+                # Normalize to canonical slot names
+                if text == "Weapon":
+                    item.item_type = "Wand"
+                elif text in ("Shoe", "Boot", "Boots"):
                     item.item_type = "Shoes"
+                else:
+                    item.item_type = text
+                item.type_source = "string"
+
+            # Wand subtype (weapon model category)
+            elif text in WAND_SUBTYPES:
+                item.wand_subtype = text
 
             # Rarity
             elif text in RARITY_TIERS:
@@ -281,6 +317,18 @@ class BINdParser:
         if match:
             return int(match.group(1))
         return 0
+
+    @staticmethod
+    def _type_from_path(item: 'GearItem', path: str) -> None:
+        """
+        Fallback: detect equipment type from the WAD file path.
+        Used when the BINd data doesn't contain an explicit type string.
+        """
+        for pattern, slot in PATH_TYPE_MAP.items():
+            if pattern in path:
+                item.item_type = slot
+                item.type_source = "path"
+                return
 
 
 # ---------------------------------------------------------------------------
