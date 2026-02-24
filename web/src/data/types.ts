@@ -30,6 +30,7 @@ export interface GearFilters {
     excludeRarities: string[];
     levelMin: number;
     levelMax: number;
+    showStatHats: boolean;
 }
 
 /** Sort configuration */

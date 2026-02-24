@@ -90,8 +90,8 @@ export function formatStatName(raw: string): string {
 
 /** All columns available in the table */
 export const TABLE_COLUMNS = [
-    { key: "display_name", label: "Name", sortable: true },
     { key: "item_type", label: "Type", sortable: true },
+    { key: "display_name", label: "Name", sortable: false },
     { key: "school", label: "School", sortable: true },
     { key: "level_req", label: "Level", sortable: true },
     { key: "rarity", label: "Rarity", sortable: true },

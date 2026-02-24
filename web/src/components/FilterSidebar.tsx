@@ -27,6 +27,8 @@ interface FilterSidebarProps {
     onToggleType: (type: string) => void;
     onToggleRarity: (rarity: string) => void;
     onLevelChange: (min: number, max: number) => void;
+    showStatHats: boolean;
+    onToggleStatHats: () => void;
     onClear: () => void;
 }
 
@@ -44,6 +46,8 @@ export function FilterSidebar({
     onToggleType,
     onToggleRarity,
     onLevelChange,
+    showStatHats,
+    onToggleStatHats,
     onClear,
 }: FilterSidebarProps) {
     const hasActiveFilters =
@@ -146,6 +150,26 @@ export function FilterSidebar({
                             className="w-full rounded border border-border bg-surface-800 px-2 py-1 text-xs text-foreground outline-none focus:border-primary-500"
                         />
                     </div>
+                </FilterSection>
+
+                {/* Advanced Options */}
+                <FilterSection title="Advanced Options">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="relative flex items-center justify-center w-4 h-4 rounded border border-border bg-surface-800 transition-colors group-hover:border-primary-500">
+                            <input
+                                type="checkbox"
+                                checked={showStatHats}
+                                onChange={onToggleStatHats}
+                                className="absolute opacity-0 cursor-pointer w-full h-full"
+                            />
+                            {showStatHats && (
+                                <svg className="w-2.5 h-2.5 text-primary-500 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                            )}
+                        </div>
+                        <span className="text-sm text-foreground/80 select-none group-hover:text-foreground">Show Base Gear (*StatHat)</span>
+                    </label>
                 </FilterSection>
             </div>
         </aside>

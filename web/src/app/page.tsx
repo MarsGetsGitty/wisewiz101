@@ -25,6 +25,7 @@ export default function HomePage() {
     setColumns,
     clearColumns,
     clearFilters,
+    toggleShowStatHats,
   } = useFilters(items);
 
   const availableStats = useMemo(() => {
@@ -87,6 +88,8 @@ export default function HomePage() {
         onToggleType={toggleType}
         onToggleRarity={toggleRarity}
         onLevelChange={setLevelRange}
+        showStatHats={filters.showStatHats}
+        onToggleStatHats={toggleShowStatHats}
         onClear={clearFilters}
       />
       <div className="flex flex-1 flex-col gap-4 min-w-0">

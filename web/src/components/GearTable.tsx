@@ -18,7 +18,7 @@ interface GearTableProps {
     sorts: SortConfig[];
     activeStats: string[];
     defaultStats: string[];
-    onSort: (key: string, isMulti: boolean) => void;
+    onSort: (key: string) => void;
 }
 
 const ROW_HEIGHT = 44;
@@ -68,7 +68,8 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
         return { index, direction: sorts[index].direction };
     };
 
-    const primarySortKey = sorts.length > 0 ? sorts[0].key : null;
+    // Determine which columns are actively sorted to apply highlights
+    const activeSortKeys = sorts.map(s => s.key);
 
     const scrollToTop = () => {
         containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -87,48 +88,39 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                         <tr>
                             {TABLE_COLUMNS.map((col) => {
                                 const sortInfo = getSortInfo(col.key);
-                                const isPrimary = primarySortKey === col.key;
+                                const isSorted = activeSortKeys.includes(col.key);
                                 return (
                                     <th
                                         key={col.key}
-                                        onClick={(e) => col.sortable && onSort(col.key, e.shiftKey)}
-                                        className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:text-foreground/80 hover:bg-surface-800/50" : ""
-                                            } ${isPrimary ? "bg-primary-500/10 text-primary-400" : ""}`}
+                                        onClick={() => col.sortable && onSort(col.key)}
+                                        className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-surface-800/50 hover:text-foreground/80" : ""
+                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""}`}
                                     >
                                         <span className="flex items-center gap-1.5">
                                             {col.label}
                                             {sortInfo && (
-                                                <span className="flex items-center gap-0.5 text-primary-500">
-                                                    <SortArrow direction={sortInfo.direction} />
-                                                    {sorts.length > 1 && (
-                                                        <span className="text-[10px] font-bold leading-none">{sortInfo.index + 1}</span>
-                                                    )}
-                                                </span>
+                                                <SortArrow direction={sortInfo.direction} isGroup2={false} />
                                             )}
                                         </span>
                                     </th>
                                 );
                             })}
-                            {displayStats.map((stat) => {
+                            {displayStats.map((stat, i) => {
                                 const sortKey = `stat:${stat}`;
                                 const sortInfo = getSortInfo(sortKey);
-                                const isPrimary = primarySortKey === sortKey;
+                                const isSorted = activeSortKeys.includes(sortKey);
+                                const isFirst = i === 0;
                                 return (
                                     <th
                                         key={stat}
-                                        onClick={(e) => onSort(sortKey, e.shiftKey)}
-                                        className={`cursor-pointer select-none border-b border-border px-3 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors hover:bg-surface-800/50 hover:text-foreground/80 ${isPrimary ? "bg-primary-500/10 text-primary-400" : ""
-                                            }`}
+                                        onClick={() => onSort(sortKey)}
+                                        className={`cursor-pointer select-none border-b border-border px-3 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors hover:bg-surface-800/50 hover:text-foreground/80 ${isSorted ? "bg-primary-500/10 text-primary-400" : ""
+                                            } ${isFirst ? "border-l-2 border-border/60" : ""}`}
                                     >
                                         <span className="flex items-center gap-1.5">
                                             {stat.replace(/([a-z])([A-Z])/g, "$1 $2")}
                                             {sortInfo && (
-                                                <span className="flex items-center gap-0.5 text-primary-500">
-                                                    <SortArrow direction={sortInfo.direction} />
-                                                    {sorts.length > 1 && (
-                                                        <span className="text-[10px] font-bold leading-none">{sortInfo.index + 1}</span>
-                                                    )}
-                                                </span>
+                                                <SortArrow direction={sortInfo.direction} isGroup2={true} />
                                             )}
                                         </span>
                                     </th>
@@ -150,7 +142,10 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 className="border-b border-border/30 transition-colors hover:bg-surface-800/60"
                                 style={{ height: ROW_HEIGHT }}
                             >
-                                <td className={`px-4 py-2 ${primarySortKey === "display_name" ? "bg-primary-500/5" : ""}`}>
+                                <td className={`px-4 py-2 text-sm text-foreground/60 ${activeSortKeys.includes("item_type") ? "bg-accent-500/5" : ""}`}>
+                                    {item.item_type}
+                                </td>
+                                <td className={`px-4 py-2 ${activeSortKeys.includes("display_name") ? "bg-accent-500/10" : "bg-surface-800/30"} border-r border-border/30`}>
                                     <Link
                                         href={`/items/${encodeURIComponent(item.name)}${qs}`}
                                         className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
@@ -158,10 +153,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         {item.display_name || item.name}
                                     </Link>
                                 </td>
-                                <td className={`px-4 py-2 text-sm text-foreground/60 ${primarySortKey === "item_type" ? "bg-primary-500/5" : ""}`}>
-                                    {item.item_type}
-                                </td>
-                                <td className={`px-4 py-2 ${primarySortKey === "school" ? "bg-primary-500/5" : ""}`}>
+                                <td className={`px-4 py-2 ${activeSortKeys.includes("school") ? "bg-accent-500/5" : ""}`}>
                                     {item.school && (
                                         <span
                                             className="text-sm"
@@ -171,10 +163,10 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         </span>
                                     )}
                                 </td>
-                                <td className={`px-4 py-2 text-sm text-foreground/60 ${primarySortKey === "level_req" ? "bg-primary-500/5" : ""}`}>
+                                <td className={`px-4 py-2 text-sm text-foreground/60 ${activeSortKeys.includes("level_req") ? "bg-accent-500/5" : ""}`}>
                                     {item.level_req || "—"}
                                 </td>
-                                <td className={`px-4 py-2 ${primarySortKey === "rarity" ? "bg-primary-500/5" : ""}`}>
+                                <td className={`px-4 py-2 ${activeSortKeys.includes("rarity") ? "bg-accent-500/5" : ""}`}>
                                     <span
                                         className="text-xs font-medium"
                                         style={{ color: RARITY_COLORS[item.rarity] }}
@@ -182,10 +174,11 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         {RARITY_LABELS[item.rarity] || "—"}
                                     </span>
                                 </td>
-                                {displayStats.map((stat) => (
+                                {displayStats.map((stat, i) => (
                                     <td
                                         key={stat}
-                                        className={`px-3 py-2 text-sm ${primarySortKey === `stat:${stat}` ? "bg-primary-500/5" : ""}`}
+                                        className={`px-3 py-2 text-sm transition-colors ${i === 0 ? "border-l-2 border-border/60" : ""
+                                            } ${activeSortKeys.includes(`stat:${stat}`) ? "bg-primary-500/5" : ""}`}
                                     >
                                         {item.stats[stat] != null ? (
                                             <span
@@ -241,9 +234,10 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
     );
 }
 
-function SortArrow({ direction }: { direction: "asc" | "desc" }) {
+function SortArrow({ direction, isGroup2 }: { direction: "asc" | "desc", isGroup2: boolean }) {
+    const colorClass = isGroup2 ? "text-primary-500" : "text-accent-500";
     return (
-        <span className="text-accent-500">
+        <span className={`flex items-center ml-0.5 ${colorClass}`}>
             {direction === "asc" ? "▲" : "▼"}
         </span>
     );

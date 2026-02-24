@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useCallback, useRef } from "react";
-import { useQueryStates, parseAsString, parseAsArrayOf, parseAsInteger } from "nuqs";
+import { useQueryStates, parseAsString, parseAsArrayOf, parseAsInteger, parseAsBoolean } from "nuqs";
 import type { GearItem, SortConfig } from "@/data/types";
 import { processItems } from "@/lib/filters";
 
@@ -18,6 +18,7 @@ export function useFilters(items: GearItem[]) {
         levelMax: parseAsInteger.withDefault(0),
         sorts: parseAsArrayOf(parseAsString).withDefault([]),
         columns: parseAsArrayOf(parseAsString).withDefault([]),
+        showStatHats: parseAsBoolean.withDefault(false),
     });
 
     const activeSorts: SortConfig[] = useMemo(() => {
@@ -121,27 +122,39 @@ export function useFilters(items: GearItem[]) {
     );
 
     const toggleSort = useCallback(
-        (key: string, isMulti: boolean = false) => {
+        (key: string) => {
             const currentSorts = filters.sorts || [];
-            const existingIdx = currentSorts.findIndex(s => s.startsWith(key + ":"));
+
+            const isGroup2 = key.startsWith("stat:");
+            const defaultsToDesc = isGroup2 || key === "level_req";
+            const defaultDir = defaultsToDesc ? "desc" : "asc";
 
             let nextSorts = [...currentSorts];
 
+            const existingIdx = nextSorts.findIndex(s => s.startsWith(key + ":"));
+
             if (existingIdx >= 0) {
-                const isDesc = currentSorts[existingIdx].endsWith(":desc");
-                if (isDesc) {
-                    nextSorts[existingIdx] = `${key}:asc`;
+                const currentDir = nextSorts[existingIdx].endsWith(":desc") ? "desc" : "asc";
+                if (currentDir === defaultDir) {
+                    nextSorts[existingIdx] = `${key}:${defaultDir === "asc" ? "desc" : "asc"}`;
                 } else {
-                    // Remove it
                     nextSorts.splice(existingIdx, 1);
                 }
             } else {
-                nextSorts.push(`${key}:desc`);
-            }
+                nextSorts = nextSorts.filter(s => {
+                    const isSGroup2 = s.startsWith("stat:");
+                    return isGroup2 !== isSGroup2;
+                });
 
-            if (!isMulti) {
-                const newConfig = nextSorts.find(s => s.startsWith(key + ":"));
-                nextSorts = newConfig ? [newConfig] : [];
+                nextSorts.push(`${key}:${defaultDir}`);
+
+                nextSorts.sort((a, b) => {
+                    const aIsG2 = a.startsWith("stat:");
+                    const bIsG2 = b.startsWith("stat:");
+                    if (!aIsG2 && bIsG2) return -1;
+                    if (aIsG2 && !bIsG2) return 1;
+                    return 0;
+                });
             }
 
             setFilters({ sorts: nextSorts.length > 0 ? nextSorts : null });
@@ -162,7 +175,12 @@ export function useFilters(items: GearItem[]) {
             levelMax: null,
             sorts: null,
             columns: null,
+            showStatHats: null,
         });
+    }, [setFilters]);
+
+    const toggleShowStatHats = useCallback(() => {
+        setFilters((prev) => ({ showStatHats: !prev.showStatHats }));
     }, [setFilters]);
 
     const toggleColumn = useCallback(
@@ -205,5 +223,6 @@ export function useFilters(items: GearItem[]) {
         setColumns,
         clearColumns,
         clearFilters,
+        toggleShowStatHats,
     };
 }

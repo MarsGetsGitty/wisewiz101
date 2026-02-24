@@ -66,6 +66,11 @@ export function filterItems(
             return false;
         }
 
+        // Base Gear Filter
+        if (!filters.showStatHats && item.name.endsWith("StatHat")) {
+            return false;
+        }
+
         return true;
     });
 }
@@ -102,9 +107,10 @@ export function sortItems(
                 bVal = (b as unknown as Record<string, unknown>)[key] as string | number;
             }
 
-            // Treat undefined/null as lowest priority when sorting ascending
-            if (aVal === undefined || aVal === null) aVal = -Infinity;
-            if (bVal === undefined || bVal === null) bVal = -Infinity;
+            // Put undefined/null at absolute bottom
+            if (aVal == null && bVal == null) continue;
+            if (aVal == null) return 1;
+            if (bVal == null) return -1;
 
             let result = 0;
             if (typeof aVal === "string" && typeof bVal === "string") {
