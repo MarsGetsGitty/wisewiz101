@@ -30,7 +30,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${outfit.variable} ${cinzel.variable} font-sans antialiased selection:bg-primary-500/30`}
+        className={`${cinzel.variable} ${outfit.variable} font-sans bg-surface-950 text-foreground min-h-screen`}
+        style={{ scrollbarGutter: "stable" }}
       >
         <div className="flex min-h-screen flex-col">
           <header className="sticky top-0 z-50 border-b border-border bg-surface-900/80 px-6 py-4 backdrop-blur-md">

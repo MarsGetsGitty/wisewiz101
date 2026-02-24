@@ -83,7 +83,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                 className="h-full overflow-auto rounded border border-border bg-surface-900/50"
                 style={{ maxHeight: "calc(100vh - 200px)" }}
             >
-                <table className="w-full min-w-[800px] border-collapse">
+                <table className="w-[1200px] max-w-none table-fixed border-collapse">
                     <thead className="sticky top-0 z-10 bg-surface-900">
                         <tr>
                             {TABLE_COLUMNS.map((col) => {
@@ -94,7 +94,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         key={col.key}
                                         onClick={() => col.sortable && onSort(col.key)}
                                         className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-surface-800/50 hover:text-foreground/80" : ""
-                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""}`}
+                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${col.key === "display_name" ? "w-[280px]" : col.key === "item_type" ? "w-[180px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]"}`}
                                     >
                                         <span className="flex items-center gap-1.5">
                                             {col.label}
@@ -142,13 +142,15 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 className="border-b border-border/30 transition-colors hover:bg-surface-800/60"
                                 style={{ height: ROW_HEIGHT }}
                             >
-                                <td className={`px-4 py-2 text-sm text-foreground/60 ${activeSortKeys.includes("item_type") ? "bg-accent-500/5" : ""}`}>
-                                    {item.item_type}
+                                <td className={`px-4 py-2 ${activeSortKeys.includes("item_type") ? "bg-accent-500/5" : ""}`}>
+                                    <div className="truncate text-sm text-foreground/60">
+                                        {item.item_type}
+                                    </div>
                                 </td>
                                 <td className={`px-4 py-2 ${activeSortKeys.includes("display_name") ? "bg-accent-500/10" : "bg-surface-800/30"} border-r border-border/30`}>
                                     <Link
                                         href={`/items/${encodeURIComponent(item.name)}${qs}`}
-                                        className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
+                                        className="block truncate text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
                                     >
                                         {item.display_name || item.name}
                                     </Link>
@@ -177,7 +179,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 {displayStats.map((stat, i) => (
                                     <td
                                         key={stat}
-                                        className={`px-3 py-2 text-sm transition-colors ${i === 0 ? "border-l-2 border-border/60" : ""
+                                        className={`px-3 py-2 text-sm whitespace-nowrap transition-colors ${i === 0 ? "border-l-2 border-border/60" : ""
                                             } ${activeSortKeys.includes(`stat:${stat}`) ? "bg-primary-500/5" : ""}`}
                                     >
                                         {item.stats[stat] != null ? (

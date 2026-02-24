@@ -63,7 +63,7 @@ export function FilterSidebar({
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <aside className="w-full shrink-0 md:w-56">
+        <aside className="w-full shrink-0 md:w-64">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex w-full items-center justify-between rounded border border-border bg-surface-800 px-4 py-2.5 text-sm font-medium hover:bg-surface-700 md:hidden"
