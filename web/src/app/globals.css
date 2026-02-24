@@ -86,3 +86,41 @@
     background: var(--color-primary-700);
   }
 }
+
+@layer utilities {
+  .hover-marquee {
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  /* 
+   * When the parent group is hovered, trigger a slide animation.
+   * We use a step/scroll animation that moves the text left, pauses, then jumps back.
+   * To prevent jumping, we just use a smooth alternate.
+   */
+  .group:hover .hover-marquee {
+    /* 
+     * We don't know the exact width of the text vs the container,
+     * so we use a CSS trick: animating based on an arbitrary percentage 
+     * that usually covers long names, or we rely on the user seeing enough.
+     * 
+     * Since we can't easily animate to exactly "scrollWidth - clientWidth" in pure CSS,
+     * a common trick is animating to -20% or using text-indent.
+     */
+    animation: marquee-slide 4s linear infinite alternate;
+  }
+}
+
+@keyframes marquee-slide {
+
+  0%,
+  10% {
+    transform: translateX(0);
+  }
+
+  90%,
+  100% {
+    /* Slide to the left just enough to reveal the end of a typical long Wizard101 item. */
+    transform: translateX(calc(-100% + 220px));
+  }
+}

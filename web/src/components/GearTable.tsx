@@ -76,7 +76,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
     };
 
     // Calculate dynamic table width to prevent column squashing when many stats are selected
-    const METADATA_WIDTH = 760; // Sum of fixed widths: 180 + 280 + 120 + 80 + 100
+    const METADATA_WIDTH = 720; // Sum of fixed widths: 180 + 240 + 120 + 80 + 100
     const STAT_COLUMN_WIDTH = 120;
     const tableWidth = Math.max(1200, METADATA_WIDTH + displayStats.length * STAT_COLUMN_WIDTH);
 
@@ -99,7 +99,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         key={col.key}
                                         onClick={() => col.sortable && onSort(col.key)}
                                         className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-surface-800/50 hover:text-foreground/80" : ""
-                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${col.key === "display_name" ? "w-[280px] sticky left-0 z-20 bg-surface-900 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:absolute after:inset-y-0 after:right-0 after:w-[2px] after:bg-border/60" : col.key === "item_type" ? "w-[180px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]"}`}
+                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${col.key === "display_name" ? "w-[240px] sticky max-md:static left-0 z-20 bg-surface-900 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] max-md:shadow-none after:absolute after:inset-y-0 after:right-0 after:w-[2px] after:bg-border/60 max-md:after:hidden" : col.key === "item_type" ? "w-[180px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]"}`}
                                     >
                                         <span className="flex items-center gap-1.5">
                                             {col.label}
@@ -152,10 +152,10 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         {item.item_type}
                                     </div>
                                 </td>
-                                <td className={`px-4 py-2 ${activeSortKeys.includes("display_name") ? "bg-accent-500/10" : "bg-surface-900 group-hover:bg-surface-800/80"} transition-colors sticky left-0 z-10 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:absolute after:inset-y-0 after:right-0 after:w-[2px] after:bg-border/60`}>
+                                <td className={`px-4 py-2 overflow-hidden ${activeSortKeys.includes("display_name") ? "bg-accent-500/10" : "bg-surface-900 max-md:bg-transparent group-hover:bg-surface-800/80"} transition-colors sticky max-md:static left-0 z-10 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] max-md:shadow-none after:absolute after:inset-y-0 after:right-0 after:w-[2px] after:bg-border/60 max-md:after:hidden`}>
                                     <Link
                                         href={`/items/${encodeURIComponent(item.name)}${qs}`}
-                                        className="block truncate text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
+                                        className="inline-block hover-marquee text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
                                     >
                                         {item.display_name || item.name}
                                     </Link>
