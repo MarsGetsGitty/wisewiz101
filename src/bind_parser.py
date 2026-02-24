@@ -24,6 +24,43 @@ STAT_PROPERTY_HASH = 0x78F28C29
 # 8-byte sequence between stat name string and its int32 value
 STAT_VALUE_GAP = bytes([0x60, 0x00, 0x00, 0x00, 0xCC, 0x4F, 0xF4, 0x60])
 
+# Stat value correction:
+#   ALL raw values are off by -1 (display = raw + 1)
+#   Percentage stats additionally have a +100 bias in their raw value
+#   so: percentage_display = raw - 100 + 1 = raw - 99
+#
+# Stats that are percentage-based (contain the +100 bias):
+PERCENTAGE_STATS = frozenset({
+    # School damage
+    "AllDamage", "FireDamage", "IceDamage", "StormDamage",
+    "MythDamage", "LifeDamage", "DeathDamage", "BalanceDamage",
+    "ShadowDamage",
+    # School accuracy
+    "AllAccuracy", "FireAccuracy", "IceAccuracy", "StormAccuracy",
+    "MythAccuracy", "LifeAccuracy", "DeathAccuracy", "BalanceAccuracy",
+    # Armor piercing
+    "AllArmorPiercing", "FireArmorPiercing", "IceArmorPiercing",
+    "StormArmorPiercing", "MythArmorPiercing", "LifeArmorPiercing",
+    "DeathArmorPiercing", "BalanceArmorPiercing", "ShadowArmorPiercing",
+    # Resist (reduce damage)
+    "AllReduceDamage", "FireReduceDamage", "IceReduceDamage",
+    "StormReduceDamage", "MythReduceDamage", "LifeReduceDamage",
+    "DeathReduceDamage", "BalanceReduceDamage", "ShadowReduceDamage",
+    # Pip conversion
+    "AllPipConversion", "FirePipConversion", "IcePipConversion",
+    "StormPipConversion", "MythPipConversion", "LifePipConversion",
+    "DeathPipConversion", "BalancePipConversion",
+    # Power pip chance
+    "PowerPip",
+    # Healing
+    "LifeHealing", "IncHealing",
+    # Mastery
+    "FireMastery", "IceMastery", "StormMastery",
+    "MythMastery", "LifeMastery", "DeathMastery", "BalanceMastery",
+    # Other percentage stats
+    "MaxManaPercentReduce",
+})
+
 # Equipment slot types (as they appear in BINd strings)
 EQUIPMENT_TYPES = frozenset({
     "Hat", "Robe", "Shoes", "Shoe", "Boot", "Boots",
@@ -288,6 +325,9 @@ class BINdParser:
 
         Pattern: After a stat name string, there's an 8-byte gap
         (60 00 00 00 CC 4F F4 60) followed by the stat value as int32LE.
+
+        NOTE: Raw values are currently stored as-is. There is a known
+        universal -1 offset vs wiki display values — root cause TBD.
         """
         for s in strings:
             text = s["text"]
