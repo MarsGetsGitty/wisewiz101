@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  /* Dark fantasy palette */
+  --color-background: #0f0a1d;
+  --color-foreground: #e2dff0;
+  --color-primary-500: #8c78f1;
+  --color-primary-600: #7b65e0;
+  --color-primary-700: #624bce;
+  --color-accent-500: #f4d03f;
+  --color-accent-600: #e5c100;
+
+  /* Panel surfaces */
+  --color-surface-900: #1a142c;
+  --color-surface-800: #251c3f;
+  --color-surface-700: #302650;
+
+  /* Borders */
+  --color-border: #3d3066;
+
+  /* School Colors */
+  --color-school-balance: #e6c28f;
+  --color-school-death: #858585;
+  --color-school-fire: #e15f41;
+  --color-school-ice: #55e6c1;
+  --color-school-life: #78e08f;
+  --color-school-myth: #f8c291;
+  --color-school-shadow: #7f8fa6;
+  --color-school-storm: #9a8deb;
+
+  /* Stat badge colors */
+  --color-stat-flat: #60a5fa;
+  --color-stat-percent: #f472b6;
+
+  /* Rarity colors */
+  --color-rarity-common: #9ca3af;
+  --color-rarity-uncommon: #34d399;
+  --color-rarity-rare: #60a5fa;
+  --color-rarity-epic: #c084fc;
+
+  /* Fonts */
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --font-display: var(--font-cinzel), serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    background-image:
+      radial-gradient(circle at 15% 50%, rgba(140, 120, 241, 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(244, 208, 63, 0.03), transparent 25%);
+    background-attachment: fixed;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-900);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-700);
+  }
+}
