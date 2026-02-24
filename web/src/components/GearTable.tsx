@@ -21,6 +21,31 @@ interface GearTableProps {
     onSort: (key: string) => void;
 }
 
+const HoverMarqueeLink = ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => {
+    const containerRef = useRef<HTMLAnchorElement>(null);
+    const [isMarquee, setIsMarquee] = useState(false);
+
+    const handleMouseEnter = () => {
+        if (containerRef.current) {
+            if (containerRef.current.scrollWidth > containerRef.current.clientWidth) {
+                setIsMarquee(true);
+            }
+        }
+    };
+
+    return (
+        <Link
+            ref={containerRef}
+            href={href}
+            className={`${className || ""} ${isMarquee ? "hover-marquee hover-marquee-animated" : "truncate block"}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={() => setIsMarquee(false)}
+        >
+            {children}
+        </Link>
+    );
+};
+
 const ROW_HEIGHT = 44;
 const OVERSCAN = 10;
 
@@ -76,7 +101,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
     };
 
     // Calculate dynamic table width to prevent column squashing when many stats are selected
-    const METADATA_WIDTH = 720; // Sum of fixed widths: 180 + 240 + 120 + 80 + 100
+    const METADATA_WIDTH = 640; // Sum of fixed widths: 140 + 200 + 120 + 80 + 100
     const STAT_COLUMN_WIDTH = 120;
     const tableWidth = Math.max(1200, METADATA_WIDTH + displayStats.length * STAT_COLUMN_WIDTH);
 
@@ -99,7 +124,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         key={col.key}
                                         onClick={() => col.sortable && onSort(col.key)}
                                         className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-surface-800/50 hover:text-foreground/80" : ""
-                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${col.key === "display_name" ? "w-[240px] sticky max-md:static left-0 z-20 bg-surface-900 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] max-md:shadow-none after:absolute after:inset-y-0 after:right-0 after:w-[2px] after:bg-border/60 max-md:after:hidden" : col.key === "item_type" ? "w-[180px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]"}`}
+                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${col.key === "display_name" ? "w-[200px] static md:sticky left-0 md:z-20 bg-transparent md:bg-surface-900 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60" : col.key === "item_type" ? "w-[140px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]"}`}
                                     >
                                         <span className="flex items-center gap-1.5">
                                             {col.label}
@@ -152,13 +177,13 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                         {item.item_type}
                                     </div>
                                 </td>
-                                <td className={`px-4 py-2 overflow-hidden ${activeSortKeys.includes("display_name") ? "bg-accent-500/10" : "bg-surface-900 max-md:bg-transparent group-hover:bg-surface-800/80"} transition-colors sticky max-md:static left-0 z-10 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] max-md:shadow-none after:absolute after:inset-y-0 after:right-0 after:w-[2px] after:bg-border/60 max-md:after:hidden`}>
-                                    <Link
+                                <td className={`px-4 py-2 overflow-hidden ${activeSortKeys.includes("display_name") ? "bg-accent-500/10" : "bg-transparent md:bg-surface-900 md:group-hover:bg-surface-800/80"} transition-colors static md:sticky left-0 md:z-10 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60`}>
+                                    <HoverMarqueeLink
                                         href={`/items/${encodeURIComponent(item.name)}${qs}`}
-                                        className="inline-block hover-marquee text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
+                                        className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
                                     >
                                         {item.display_name || item.name}
-                                    </Link>
+                                    </HoverMarqueeLink>
                                 </td>
                                 <td className={`px-4 py-2 ${activeSortKeys.includes("school") ? "bg-accent-500/5" : ""}`}>
                                     {item.school && (

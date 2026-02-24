@@ -90,11 +90,11 @@ export function formatStatName(raw: string): string {
 
 /** All columns available in the table */
 export const TABLE_COLUMNS = [
-    { key: "item_type", label: "Type", sortable: true },
-    { key: "display_name", label: "Name", sortable: false },
-    { key: "school", label: "School", sortable: true },
-    { key: "level_req", label: "Level", sortable: true },
-    { key: "rarity", label: "Rarity", sortable: true },
+    { key: "item_type", label: "Type", sortable: true, width: 140 },
+    { key: "display_name", label: "Name", sortable: false, width: 200 },
+    { key: "school", label: "School", sortable: true, width: 120 },
+    { key: "level_req", label: "Level", sortable: true, width: 80 },
+    { key: "rarity", label: "Rarity", sortable: true, width: 100 },
 ] as const;
 
 // Game-authentic logical ordering for stats
