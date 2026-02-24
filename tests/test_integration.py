@@ -9,6 +9,7 @@ They will be skipped in CI or environments without game data.
 import os
 
 import pytest
+
 from src.bind_parser import BINdParser
 
 WAD_PATH = os.path.join(

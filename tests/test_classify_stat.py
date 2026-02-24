@@ -4,6 +4,7 @@ Every single one of the 92 known stats must map to its correct StatType.
 """
 
 import pytest
+
 from src.bind_parser import (
     BOOLEAN_STATS,
     FLAT_STATS,

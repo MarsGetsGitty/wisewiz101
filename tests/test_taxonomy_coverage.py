@@ -6,7 +6,6 @@ and have zero overlap.
 
 from src.bind_parser import BOOLEAN_STATS, FLAT_STATS, PERCENTAGE_STATS
 
-
 EXPECTED_TOTAL = 92
 
 

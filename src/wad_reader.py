@@ -9,7 +9,7 @@ Binary format (reverse-engineered from Root.wad):
         4 bytes  - Version (int32 LE)
         4 bytes  - File count (int32 LE)
         1 byte   - Spacer (version >= 2 only)
-    
+
     Per-file entry (repeated file_count times):
         4 bytes  - Data offset (int32 LE)
         4 bytes  - Uncompressed size (int32 LE)
@@ -18,20 +18,18 @@ Binary format (reverse-engineered from Root.wad):
         4 bytes  - CRC32 checksum (int32 LE)
         4 bytes  - Filename length (int32 LE)
         N bytes  - Filename (null-terminated ASCII)
-    
+
     Data section:
         File data at the offsets specified above.
         Compressed files use zlib (standard deflate with 2-byte header).
 """
 
-import struct
-import zlib
+import fnmatch
 import os
 import re
-import fnmatch
+import struct
+import zlib
 from dataclasses import dataclass
-from typing import Optional
-
 
 KIWAD_MAGIC = b"KIWAD"
 
@@ -60,17 +58,17 @@ class WadFileEntry:
 class WadArchive:
     """
     Reader for KIWAD .wad archive files.
-    
+
     Usage:
         wad = WadArchive("path/to/Root.wad")
         print(f"Contains {len(wad.files)} files")
-        
+
         # List gear files
         gear_files = wad.list_files("ObjectData/*/Hats/*.xml")
-        
+
         # Extract a single file
         data = wad.extract_file("ObjectData/Aquila Gear/Amulets/Amulet-AQ-Balance-Mastery.xml")
-        
+
         # Extract many files to disk
         wad.extract_to_disk("ObjectData/*/Hats/*.xml", output_dir="extracted/")
     """
@@ -134,19 +132,19 @@ class WadArchive:
                 self.files.append(entry)
                 self._file_map[name] = entry
 
-    def get_entry(self, name: str) -> Optional[WadFileEntry]:
+    def get_entry(self, name: str) -> WadFileEntry | None:
         """Look up a file entry by exact name. Returns None if not found."""
         return self._file_map.get(name)
 
-    def list_files(self, pattern: Optional[str] = None) -> list[WadFileEntry]:
+    def list_files(self, pattern: str | None = None) -> list[WadFileEntry]:
         """
         List files in the archive, optionally filtered by glob pattern.
-        
+
         Supports * and ** wildcards via fnmatch:
             "ObjectData/*/Hats/*.xml"  - hats from any world
             "*.xml"                    - all XML files
             "Locale/*"                 - all locale files
-        
+
         For regex filtering, use list_files_regex() instead.
         """
         if pattern is None:
@@ -168,7 +166,7 @@ class WadArchive:
     def is_available(self, entry: WadFileEntry) -> bool:
         """
         Check if a file's data is actually present in the local WAD.
-        
+
         Wizard101 streams content on-demand, so the file table may reference
         data offsets beyond the current file size (not-yet-downloaded content).
         """
@@ -177,7 +175,7 @@ class WadArchive:
     def extract_file(self, name: str) -> bytes:
         """
         Extract a single file by name, returning its decompressed contents.
-        
+
         Raises:
             KeyError: if the file name doesn't exist in the archive
             IOError: if the file data hasn't been downloaded yet (streaming gap)
@@ -192,7 +190,7 @@ class WadArchive:
     def _extract_entry(self, entry: WadFileEntry) -> bytes:
         """Extract and decompress a single file entry."""
         if not self.is_available(entry):
-            raise IOError(
+            raise OSError(
                 f"File data not available (streaming gap): {entry.name!r} "
                 f"at offset {entry.offset}, needs {entry.data_size} bytes, "
                 f"but WAD file is only {self._file_size} bytes"
@@ -203,7 +201,7 @@ class WadArchive:
             raw_data = f.read(entry.data_size)
 
             if len(raw_data) < entry.data_size:
-                raise IOError(
+                raise OSError(
                     f"Could not read full data for {entry.name!r}: "
                     f"expected {entry.data_size} bytes, got {len(raw_data)}"
                 )
@@ -226,12 +224,12 @@ class WadArchive:
     ) -> dict:
         """
         Extract files matching a glob pattern to disk.
-        
+
         Args:
             pattern: Glob pattern to match filenames
             output_dir: Directory to write extracted files to
             skip_unavailable: If True, silently skip files not yet downloaded
-        
+
         Returns:
             dict with keys: 'extracted', 'skipped', 'errors'
                 - extracted: list of successfully extracted file names
@@ -239,7 +237,7 @@ class WadArchive:
                 - errors: list of (name, error_message) tuples
         """
         entries = self.list_files(pattern)
-        result = {"extracted": [], "skipped": [], "errors": []}
+        result: dict[str, list] = {"extracted": [], "skipped": [], "errors": []}
 
         for entry in entries:
             if not self.is_available(entry):
@@ -268,7 +266,7 @@ class WadArchive:
     def stats(self) -> dict:
         """
         Get summary statistics about the archive.
-        
+
         Returns dict with: total_files, available_files, unavailable_files,
         compressed_files, total_uncompressed_size, total_compressed_size
         """
@@ -300,7 +298,6 @@ class WadArchive:
 # --- CLI for quick testing ---
 if __name__ == "__main__":
     import sys
-    import json
 
     if len(sys.argv) < 2:
         # Default: read the local Wizard101 Root.wad

@@ -13,9 +13,8 @@
 #   - Root class hash 0x3B1F88D1 identifies item object files
 
 import struct
-from enum import Enum
 from dataclasses import dataclass, field
-from typing import Optional
+from enum import Enum
 
 BIND_MAGIC = b"BINd"
 
@@ -59,18 +58,18 @@ class StatValue:
 
 PERCENTAGE_STATS = frozenset({
     # Accuracy (8)
-    "AllAccuracy", "BalanceAccuracy", "DeathAccuracy", "FireAccuracy", 
+    "AllAccuracy", "BalanceAccuracy", "DeathAccuracy", "FireAccuracy",
     "IceAccuracy", "LifeAccuracy", "MythAccuracy", "StormAccuracy",
     # ArmorPiercing (9)
-    "AllArmorPiercing", "BalanceArmorPiercing", "DeathArmorPiercing", 
-    "FireArmorPiercing", "IceArmorPiercing", "LifeArmorPiercing", 
+    "AllArmorPiercing", "BalanceArmorPiercing", "DeathArmorPiercing",
+    "FireArmorPiercing", "IceArmorPiercing", "LifeArmorPiercing",
     "MythArmorPiercing", "ShadowArmorPiercing", "StormArmorPiercing",
     # Damage (9)
-    "AllDamage", "BalanceDamage", "DeathDamage", "FireDamage", 
+    "AllDamage", "BalanceDamage", "DeathDamage", "FireDamage",
     "IceDamage", "LifeDamage", "MythDamage", "ShadowDamage", "StormDamage",
     # ReduceDamage (9)
-    "AllReduceDamage", "BalanceReduceDamage", "DeathReduceDamage", 
-    "FireReduceDamage", "IceReduceDamage", "LifeReduceDamage", 
+    "AllReduceDamage", "BalanceReduceDamage", "DeathReduceDamage",
+    "FireReduceDamage", "IceReduceDamage", "LifeReduceDamage",
     "MythReduceDamage", "ShadowReduceDamage", "StormReduceDamage",
     # Healing (2)
     "IncHealing", "LifeHealing",
@@ -82,22 +81,22 @@ FLAT_STATS = frozenset({
     # Health/Mana/Energy (3)
     "MaxHealth", "MaxMana", "MaxEnergy",
     # Block (9)
-    "AllBlock", "BalanceBlock", "DeathBlock", "FireBlock", 
+    "AllBlock", "BalanceBlock", "DeathBlock", "FireBlock",
     "IceBlock", "LifeBlock", "MythBlock", "ShadowBlock", "StormBlock",
     # CriticalHit (8)
-    "AllCriticalHit", "BalanceCriticalHit", "DeathCriticalHit", 
-    "FireCriticalHit", "IceCriticalHit", "LifeCriticalHit", 
+    "AllCriticalHit", "BalanceCriticalHit", "DeathCriticalHit",
+    "FireCriticalHit", "IceCriticalHit", "LifeCriticalHit",
     "MythCriticalHit", "StormCriticalHit",
     # FlatDamage (7)
-    "BalanceFlatDamage", "DeathFlatDamage", "FireFlatDamage", 
+    "BalanceFlatDamage", "DeathFlatDamage", "FireFlatDamage",
     "IceFlatDamage", "LifeFlatDamage", "MythFlatDamage", "StormFlatDamage",
     # FlatReduceDamage (7)
-    "BalanceFlatReduceDamage", "DeathFlatReduceDamage", "FireFlatReduceDamage", 
-    "IceFlatReduceDamage", "LifeFlatReduceDamage", "MythFlatReduceDamage", 
+    "BalanceFlatReduceDamage", "DeathFlatReduceDamage", "FireFlatReduceDamage",
+    "IceFlatReduceDamage", "LifeFlatReduceDamage", "MythFlatReduceDamage",
     "StormFlatReduceDamage",
     # PipConversion (8)
-    "AllPipConversion", "BalancePipConversion", "DeathPipConversion", 
-    "FirePipConversion", "IcePipConversion", "LifePipConversion", 
+    "AllPipConversion", "BalancePipConversion", "DeathPipConversion",
+    "FirePipConversion", "IcePipConversion", "LifePipConversion",
     "MythPipConversion", "StormPipConversion",
     # Other (2)
     "AllArchmastery", "ShadowPipRating",
@@ -105,7 +104,7 @@ FLAT_STATS = frozenset({
 
 BOOLEAN_STATS = frozenset({
     # Mastery (7)
-    "BalanceMastery", "DeathMastery", "FireMastery", "IceMastery", 
+    "BalanceMastery", "DeathMastery", "FireMastery", "IceMastery",
     "LifeMastery", "MythMastery", "StormMastery",
 })
 
@@ -117,7 +116,7 @@ def classify_stat(name: str) -> StatType:
         return StatType.FLAT
     elif name in BOOLEAN_STATS:
         return StatType.BOOLEAN
-    
+
     # Fallback to FLAT and log (in a real app, we'd log a warning)
     # print(f"WARNING: Unknown stat '{name}' defaulted to FLAT classification.")
     return StatType.FLAT
@@ -236,10 +235,10 @@ class GearItem:
         }
         if self.wand_subtype:
             d["wand_subtype"] = self.wand_subtype
-            
+
         if include_raw:
             d["raw_stats"] = {name: vo.raw for name, vo in self._stats.items()}
-            
+
         return d
 
 
@@ -253,7 +252,7 @@ class BINdParser:
         print(item.name, item.stats)
     """
 
-    def parse(self, data: bytes, source_path: str = "") -> Optional[GearItem]:
+    def parse(self, data: bytes, source_path: str = "") -> GearItem | None:
         """
         Parse BINd binary data into a GearItem.
 
@@ -451,8 +450,8 @@ class BINdParser:
 # CLI for testing
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    import sys
     import json
+    import sys
 
     sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent))
     from src.wad_reader import WadArchive

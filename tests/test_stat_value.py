@@ -4,6 +4,7 @@ Tests the core business rule: raw binary integer → display value.
 """
 
 import pytest
+
 from src.bind_parser import StatType, StatValue
 
 

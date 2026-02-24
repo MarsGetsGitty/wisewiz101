@@ -7,20 +7,20 @@
 #   python src/gear_extractor.py [--wad PATH] [--output PATH] [--format json|csv]
 #   python src/gear_extractor.py --stats  (just print summary stats)
 
-import sys
-import os
-import json
 import csv
-import time
+import json
+import os
 import re
+import sys
+import time
 from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.wad_reader import WadArchive
-from src.bind_parser import BINdParser, BIND_MAGIC
+from src.bind_parser import BIND_MAGIC, BINdParser, GearItem
 from src.locale_reader import LocaleReader
+from src.wad_reader import WadArchive
 
 # Patterns that identify gear ObjectData files
 GEAR_PATH_RE = re.compile(
@@ -105,7 +105,7 @@ class GearExtractor:
         """
         entries = self.find_gear_files()
         total = len(entries)
-        items = []
+        items: list[GearItem] = []
         errors = 0
         skipped = 0
         start = time.time()
@@ -211,35 +211,35 @@ class GearExtractor:
     def print_summary(items: list) -> None:
         """Print summary statistics about extracted gear."""
         print(f"\n{'='*60}")
-        print(f"  GEAR DATABASE SUMMARY")
+        print("  GEAR DATABASE SUMMARY")
         print(f"{'='*60}")
         print(f"  Total items: {len(items):,}")
 
         # By type
-        by_type = {}
+        by_type: dict[str, int] = {}
         for item in items:
             t = item.item_type or "(unknown)"
             by_type[t] = by_type.get(t, 0) + 1
-        print(f"\n  By Type:")
-        for t in sorted(by_type, key=by_type.get, reverse=True):
+        print("\n  By Type:")
+        for t in sorted(by_type, key=lambda k: by_type[k], reverse=True):
             print(f"    {t:12s} {by_type[t]:,}")
 
         # By rarity
-        by_rarity = {}
+        by_rarity: dict[str, int] = {}
         for item in items:
             r = item.rarity or "(none)"
             by_rarity[r] = by_rarity.get(r, 0) + 1
-        print(f"\n  By Rarity:")
-        for r in sorted(by_rarity, key=by_rarity.get, reverse=True):
+        print("\n  By Rarity:")
+        for r in sorted(by_rarity, key=lambda k: by_rarity[k], reverse=True):
             print(f"    {r:18s} {by_rarity[r]:,}")
 
         # By school
-        by_school = {}
+        by_school: dict[str, int] = {}
         for item in items:
             s = item.school or "(none)"
             by_school[s] = by_school.get(s, 0) + 1
-        print(f"\n  By School:")
-        for s in sorted(by_school, key=by_school.get, reverse=True):
+        print("\n  By School:")
+        for s in sorted(by_school, key=lambda k: by_school[k], reverse=True):
             print(f"    {s:12s} {by_school[s]:,}")
 
         # Stats coverage
@@ -286,7 +286,7 @@ def main():
     gear_files = extractor.find_gear_files()
     print(f"Gear candidates: {len(gear_files):,}", file=sys.stderr)
 
-    print(f"\nExtracting...", file=sys.stderr)
+    print("\nExtracting...", file=sys.stderr)
     items = extractor.extract_all()
 
     extractor.print_summary(items)

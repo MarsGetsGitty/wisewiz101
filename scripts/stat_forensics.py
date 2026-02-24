@@ -5,8 +5,8 @@ Investigates the full binary layout AFTER each stat value to find
 what other int32 values exist in the record and whether they explain
 the universal -1 offset.
 """
-import sys
 import struct
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
