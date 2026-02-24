@@ -19,6 +19,7 @@ export function useFilters(items: GearItem[]) {
         sorts: parseAsArrayOf(parseAsString).withDefault([]),
         columns: parseAsArrayOf(parseAsString).withDefault([]),
         showStatHats: parseAsBoolean.withDefault(false),
+        showDeveloperGear: parseAsBoolean.withDefault(false),
     });
 
     const activeSorts: SortConfig[] = useMemo(() => {
@@ -176,11 +177,16 @@ export function useFilters(items: GearItem[]) {
             sorts: null,
             columns: null,
             showStatHats: null,
+            showDeveloperGear: null,
         });
     }, [setFilters]);
 
     const toggleShowStatHats = useCallback(() => {
         setFilters((prev) => ({ showStatHats: !prev.showStatHats }));
+    }, [setFilters]);
+
+    const toggleShowDeveloperGear = useCallback(() => {
+        setFilters((prev) => ({ showDeveloperGear: !prev.showDeveloperGear }));
     }, [setFilters]);
 
     const toggleColumn = useCallback(
@@ -224,5 +230,6 @@ export function useFilters(items: GearItem[]) {
         clearColumns,
         clearFilters,
         toggleShowStatHats,
+        toggleShowDeveloperGear,
     };
 }

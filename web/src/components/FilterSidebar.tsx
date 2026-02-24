@@ -29,6 +29,8 @@ interface FilterSidebarProps {
     onLevelChange: (min: number, max: number) => void;
     showStatHats: boolean;
     onToggleStatHats: () => void;
+    showDeveloperGear: boolean;
+    onToggleShowDeveloperGear: () => void;
     onClear: () => void;
 }
 
@@ -48,6 +50,8 @@ export function FilterSidebar({
     onLevelChange,
     showStatHats,
     onToggleStatHats,
+    showDeveloperGear,
+    onToggleShowDeveloperGear,
     onClear,
 }: FilterSidebarProps) {
     const hasActiveFilters =
@@ -154,7 +158,7 @@ export function FilterSidebar({
 
                 {/* Advanced Options */}
                 <FilterSection title="Advanced Options">
-                    <label className="flex items-center gap-2 cursor-pointer group">
+                    <label className="flex items-center gap-2 cursor-pointer group mb-1.5">
                         <div className="relative flex items-center justify-center w-4 h-4 rounded border border-border bg-surface-800 transition-colors group-hover:border-primary-500">
                             <input
                                 type="checkbox"
@@ -169,6 +173,25 @@ export function FilterSidebar({
                             )}
                         </div>
                         <span className="text-sm text-foreground/80 select-none group-hover:text-foreground">Show Base Gear (*StatHat)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="relative flex items-center justify-center w-4 h-4 rounded border border-border bg-surface-800 transition-colors group-hover:border-primary-500">
+                            <input
+                                type="checkbox"
+                                checked={showDeveloperGear}
+                                onChange={onToggleShowDeveloperGear}
+                                className="absolute opacity-0 cursor-pointer w-full h-full"
+                            />
+                            {showDeveloperGear && (
+                                <svg className="w-2.5 h-2.5 text-primary-500 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                            )}
+                        </div>
+                        <span className="text-sm text-foreground/80 select-none group-hover:text-foreground flex items-center gap-1.5">
+                            Show Developer Items <span className="text-xs text-foreground/40 font-normal">(!Display, Blank)</span>
+                        </span>
                     </label>
                 </FilterSection>
             </div>

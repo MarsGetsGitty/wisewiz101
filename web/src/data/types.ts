@@ -31,6 +31,7 @@ export interface GearFilters {
     levelMin: number;
     levelMax: number;
     showStatHats: boolean;
+    showDeveloperGear: boolean;
 }
 
 /** Sort configuration */

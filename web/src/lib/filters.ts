@@ -30,6 +30,16 @@ export function filterItems(
     }
 
     return result.filter((item) => {
+        // Developer Gear Filter
+        if (!filters.showDeveloperGear) {
+            if (
+                !item.display_name ||
+                item.name.includes("Blank") ||
+                /^(?:Test|QA_|Admin|Dummy)/i.test(item.name)
+            ) {
+                return false;
+            }
+        }
         // School filter
         if (
             filters.schools.length > 0 &&
@@ -105,6 +115,12 @@ export function sortItems(
             } else {
                 aVal = (a as unknown as Record<string, unknown>)[key] as string | number;
                 bVal = (b as unknown as Record<string, unknown>)[key] as string | number;
+            }
+
+            // Sink "All" and empty strings to the bottom when sorting by school
+            if (key === "school") {
+                if (aVal === "" || aVal === "All") aVal = null as any;
+                if (bVal === "" || bVal === "All") bVal = null as any;
             }
 
             // Put undefined/null at absolute bottom
