@@ -1,17 +1,12 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { GearItem, SortConfig } from "@/data/types";
-import {
-    SCHOOL_COLORS,
-    SCHOOL_EMOJI,
-    RARITY_LABELS,
-    RARITY_COLORS,
-    TABLE_COLUMNS,
-    isPercentageStat,
-} from "@/lib/constants";
+import { TABLE_COLUMNS } from "@/lib/constants";
+import { TableColumnHeader } from "./table/TableColumnHeader";
+import { TableCellMeta } from "./table/TableCellMeta";
+import { TableCellStat } from "./table/TableCellStat";
 
 interface GearTableProps {
     items: GearItem[];
@@ -21,30 +16,7 @@ interface GearTableProps {
     onSort: (key: string) => void;
 }
 
-const HoverMarqueeLink = ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => {
-    const containerRef = useRef<HTMLAnchorElement>(null);
-    const [isMarquee, setIsMarquee] = useState(false);
 
-    const handleMouseEnter = () => {
-        if (containerRef.current) {
-            if (containerRef.current.scrollWidth > containerRef.current.clientWidth) {
-                setIsMarquee(true);
-            }
-        }
-    };
-
-    return (
-        <Link
-            ref={containerRef}
-            href={href}
-            className={`${className || ""} ${isMarquee ? "hover-marquee hover-marquee-animated" : "truncate block"}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={() => setIsMarquee(false)}
-        >
-            {children}
-        </Link>
-    );
-};
 
 const ROW_HEIGHT = 44;
 const OVERSCAN = 10;
@@ -130,33 +102,21 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 const sortInfo = getSortInfo(col.key);
                                 const isSorted = activeSortKeys.includes(col.key);
                                 const isSticky = col.key === "display_name" || isSorted;
-                                const stickyStyle = isSticky ? { left: stickyPositions[col.key] } : undefined;
-
-                                const headerBg = isSticky
-                                    ? (isSorted ? "bg-transparent md:bg-[#262426] text-accent-400" : "bg-transparent md:bg-surface-900")
-                                    : (isSorted ? "bg-accent-500/10 text-accent-400" : "");
-
-                                const hoverBg = col.sortable
-                                    ? (isSticky ? "md:hover:bg-[#162032] hover:text-foreground/80 cursor-pointer select-none" : "hover:bg-surface-800/50 hover:text-foreground/80 cursor-pointer select-none")
-                                    : "";
-
-                                const stickyClasses = isSticky ? "static md:sticky md:z-20 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60" : "";
                                 const widthClass = col.key === "display_name" ? "w-[200px]" : col.key === "item_type" ? "w-[140px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]";
 
                                 return (
-                                    <th
+                                    <TableColumnHeader
                                         key={col.key}
-                                        onClick={() => col.sortable && onSort(col.key)}
-                                        className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${hoverBg} ${headerBg} ${stickyClasses} ${widthClass}`}
-                                        style={stickyStyle}
-                                    >
-                                        <span className="flex items-center gap-1.5">
-                                            {col.label}
-                                            {sortInfo && (
-                                                <SortArrow direction={sortInfo.direction} isGroup2={false} />
-                                            )}
-                                        </span>
-                                    </th>
+                                        colKey={col.key}
+                                        label={col.label}
+                                        widthClass={widthClass}
+                                        sortable={col.sortable}
+                                        isSorted={isSorted}
+                                        sortDirection={sortInfo?.direction}
+                                        isSticky={isSticky}
+                                        stickyPosition={stickyPositions[col.key]}
+                                        onSort={onSort}
+                                    />
                                 );
                             })}
                             {displayStats.map((stat, i) => {
@@ -165,19 +125,18 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 const isSorted = activeSortKeys.includes(sortKey);
                                 const isFirst = i === 0;
                                 return (
-                                    <th
+                                    <TableColumnHeader
                                         key={stat}
-                                        onClick={() => onSort(sortKey)}
-                                        className={`cursor-pointer select-none border-b border-border px-3 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors hover:bg-surface-800/50 hover:text-foreground/80 w-[120px] ${isSorted ? "bg-primary-500/10 text-primary-400" : ""
-                                            } ${isFirst ? "border-l-2 border-border/60" : ""}`}
-                                    >
-                                        <span className="flex items-center gap-1.5">
-                                            {stat.replace(/([a-z])([A-Z])/g, "$1 $2")}
-                                            {sortInfo && (
-                                                <SortArrow direction={sortInfo.direction} isGroup2={true} />
-                                            )}
-                                        </span>
-                                    </th>
+                                        colKey={sortKey}
+                                        label={stat.replace(/([a-z])([A-Z])/g, "$1 $2")}
+                                        widthClass={`w-[120px] ${isFirst ? "border-l-2 border-border/60" : ""}`}
+                                        sortable={true}
+                                        isSorted={isSorted}
+                                        sortDirection={sortInfo?.direction}
+                                        isSticky={false}
+                                        isGroup2={true}
+                                        onSort={onSort}
+                                    />
                                 );
                             })}
                         </tr>
@@ -201,100 +160,26 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                     const isSticky = col.key === "display_name" || isSorted;
                                     const stickyStyle = isSticky ? { left: stickyPositions[col.key] } : undefined;
 
-                                    let bgClasses = "";
-                                    if (isSticky) {
-                                        if (isSorted) {
-                                            bgClasses = "bg-transparent md:bg-[#1a1d28] md:group-hover:bg-[#232831]";
-                                        } else {
-                                            bgClasses = "bg-transparent md:bg-surface-900 md:group-hover:bg-[#182134]";
-                                        }
-                                    } else {
-                                        bgClasses = isSorted ? "bg-accent-500/5" : "";
-                                    }
-
-                                    const stickyClasses = isSticky
-                                        ? "static md:sticky md:z-10 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60"
-                                        : "";
-
-                                    const cellClasses = `px-4 py-2 overflow-hidden transition-colors ${bgClasses} ${stickyClasses}`;
-
-                                    if (col.key === "item_type") {
-                                        return (
-                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
-                                                <div className="truncate text-sm text-foreground/60">
-                                                    {item.item_type}
-                                                </div>
-                                            </td>
-                                        );
-                                    }
-                                    if (col.key === "display_name") {
-                                        return (
-                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
-                                                <HoverMarqueeLink
-                                                    href={`/items/${encodeURIComponent(item.name)}${qs}`}
-                                                    className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
-                                                >
-                                                    {item.display_name || item.name}
-                                                </HoverMarqueeLink>
-                                            </td>
-                                        );
-                                    }
-                                    if (col.key === "school") {
-                                        return (
-                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
-                                                {item.school && (
-                                                    <span
-                                                        className="text-sm"
-                                                        style={{ color: SCHOOL_COLORS[item.school] }}
-                                                    >
-                                                        {SCHOOL_EMOJI[item.school]} {item.school}
-                                                    </span>
-                                                )}
-                                            </td>
-                                        );
-                                    }
-                                    if (col.key === "level_req") {
-                                        return (
-                                            <td key={col.key} className={`text-sm text-foreground/60 ${cellClasses}`} style={stickyStyle}>
-                                                {item.level_req || "—"}
-                                            </td>
-                                        );
-                                    }
-                                    if (col.key === "rarity") {
-                                        return (
-                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
-                                                <span
-                                                    className="text-xs font-medium"
-                                                    style={{ color: RARITY_COLORS[item.rarity] }}
-                                                >
-                                                    {RARITY_LABELS[item.rarity] || item.rarity || "—"}
-                                                </span>
-                                            </td>
-                                        );
-                                    }
-                                    return null;
+                                    return (
+                                        <TableCellMeta
+                                            key={col.key}
+                                            item={item}
+                                            colKey={col.key}
+                                            isSorted={isSorted}
+                                            isSticky={isSticky}
+                                            stickyStyle={stickyStyle}
+                                            queryString={qs}
+                                        />
+                                    );
                                 })}
                                 {displayStats.map((stat, i) => (
-                                    <td
+                                    <TableCellStat
                                         key={stat}
-                                        className={`px-3 py-2 text-sm whitespace-nowrap transition-colors ${i === 0 ? "border-l-2 border-border/60" : ""
-                                            } ${activeSortKeys.includes(`stat:${stat}`) ? "bg-primary-500/5" : ""}`}
-                                    >
-                                        {item.stats[stat] != null ? (
-                                            <span
-                                                className={
-                                                    isPercentageStat(stat)
-                                                        ? "text-stat-percent"
-                                                        : "text-stat-flat"
-                                                }
-                                            >
-                                                {item.stats[stat]}
-                                                {isPercentageStat(stat) ? "%" : ""}
-                                            </span>
-                                        ) : (
-                                            <span className="text-foreground/15">—</span>
-                                        )}
-                                    </td>
+                                        item={item}
+                                        stat={stat}
+                                        isSorted={activeSortKeys.includes(`stat:${stat}`)}
+                                        isFirst={i === 0}
+                                    />
                                 ))}
                             </tr>
                         ))}
@@ -334,14 +219,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
     );
 }
 
-function SortArrow({ direction, isGroup2 }: { direction: "asc" | "desc", isGroup2: boolean }) {
-    const colorClass = isGroup2 ? "text-primary-500" : "text-accent-500";
-    return (
-        <span className={`flex items-center ml-0.5 ${colorClass}`}>
-            {direction === "asc" ? "▲" : "▼"}
-        </span>
-    );
-}
+
 
 /** Find the most common stats across items for dynamic columns */
 function getTopStats(items: GearItem[]): string[] {

@@ -10,6 +10,7 @@ export const SCHOOL_COLORS: Record<string, string> = {
     Shadow: "var(--color-school-shadow)",
     Storm: "var(--color-school-storm)",
     All: "var(--color-school-all)",
+    Any: "var(--color-school-any)",
 };
 
 export const SCHOOL_EMOJI: Record<string, string> = {
@@ -22,6 +23,7 @@ export const SCHOOL_EMOJI: Record<string, string> = {
     Shadow: "",
     Storm: "",
     All: "",
+    Any: "",
 };
 
 export const RARITY_LABELS: Record<string, string> = {
