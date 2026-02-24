@@ -19,20 +19,32 @@
   --color-border: #3d3066;
 
   /* School Colors */
-  --color-school-balance: #e6c28f;
+  --color-school-balance: #b4724b;
+  /* Brownish */
   --color-school-death: #858585;
   --color-school-fire: #e15f41;
-  --color-school-ice: #55e6c1;
+  --color-school-ice: #38bdf8;
+  /* Light blue */
   --color-school-life: #78e08f;
-  --color-school-myth: #f8c291;
+  --color-school-myth: #eab308;
+  /* Yellowish */
   --color-school-shadow: #7f8fa6;
-  --color-school-storm: #9a8deb;
+  --color-school-storm: #a855f7;
+  /* Purple */
 
   /* Stat badge colors */
   --color-stat-flat: #cbd5e1;
   /* Slate-300: Neutral off-white for flat stats */
   --color-stat-percent: #fbbf24;
   /* Amber-400: Warm gold for percentage stats */
+  --color-stat-health: #ef4444;
+  /* Red-500 */
+  --color-stat-mana: #3b82f6;
+  /* Blue-500 */
+  --color-stat-powerpip: #fbbf24;
+  /* Amber-400 */
+  --color-stat-shadowpip: #64748b;
+  /* Slate-500 */
 
   /* Rarity colors */
   --color-rarity-common: #9ca3af;

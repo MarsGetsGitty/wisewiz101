@@ -75,7 +75,7 @@ export function ColumnPicker({
         <div className="relative z-20" ref={containerRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 rounded-lg border border-border bg-surface-800 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary-500 hover:text-primary-500"
+                className="flex items-center gap-2 rounded border border-border bg-surface-800 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary-500 hover:text-primary-500"
             >
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="h-4 w-4">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -84,7 +84,7 @@ export function ColumnPicker({
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 max-h-[80vh] overflow-y-auto rounded-lg border border-border bg-surface-900 p-3 shadow-xl shadow-black/50">
+                <div className="absolute right-0 top-full mt-2 w-80 max-h-[80vh] overflow-y-auto rounded border border-border bg-surface-900 p-3 shadow-xl shadow-black/50">
                     <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-2 flex items-center justify-between border-b border-border/50 bg-surface-900/95 px-3 py-3 backdrop-blur-sm">
                         <span className="text-xs font-semibold uppercase tracking-widest text-foreground/50">
                             Table Columns

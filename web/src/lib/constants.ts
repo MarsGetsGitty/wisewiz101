@@ -9,19 +9,19 @@ export const SCHOOL_COLORS: Record<string, string> = {
     Myth: "var(--color-school-myth)",
     Shadow: "var(--color-school-shadow)",
     Storm: "var(--color-school-storm)",
-    All: "var(--color-primary-500)",
+    All: "var(--color-school-all)",
 };
 
 export const SCHOOL_EMOJI: Record<string, string> = {
-    Balance: "⚖️",
-    Death: "💀",
-    Fire: "🔥",
-    Ice: "❄️",
-    Life: "🌿",
-    Myth: "⚡",
-    Shadow: "🌑",
-    Storm: "⛈️",
-    All: "✨",
+    Balance: "",
+    Death: "",
+    Fire: "",
+    Ice: "",
+    Life: "",
+    Myth: "",
+    Shadow: "",
+    Storm: "",
+    All: "",
 };
 
 export const RARITY_LABELS: Record<string, string> = {

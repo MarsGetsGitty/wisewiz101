@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Cinzel } from "next/font/google";
+import Link from "next/link";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import "./globals.css";
 
@@ -33,9 +34,11 @@ export default function RootLayout({
       >
         <div className="flex min-h-screen flex-col">
           <header className="sticky top-0 z-50 border-b border-border bg-surface-900/80 px-6 py-4 backdrop-blur-md">
-            <h1 className="font-display text-2xl font-bold tracking-wider text-accent-500 drop-shadow-[0_2px_10px_rgba(244,208,63,0.3)]">
-              WiseWiz101
-            </h1>
+            <Link href="/" className="inline-block transition-transform hover:scale-105 active:scale-95">
+              <h1 className="font-display text-2xl font-bold tracking-wider text-accent-500 drop-shadow-[0_2px_10px_rgba(244,208,63,0.3)]">
+                WiseWiz101
+              </h1>
+            </Link>
           </header>
           <main className="flex-1">
             <NuqsAdapter>{children}</NuqsAdapter>

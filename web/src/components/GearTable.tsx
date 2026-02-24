@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type { GearItem, SortConfig } from "@/data/types";
 import {
     SCHOOL_COLORS,
@@ -25,6 +26,8 @@ const OVERSCAN = 10;
 
 export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: GearTableProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const searchParams = useSearchParams();
+    const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
     const [scrollTop, setScrollTop] = useState(0);
     const [containerHeight, setContainerHeight] = useState(600);
 
@@ -76,7 +79,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
-                className="h-full overflow-auto rounded-lg border border-border bg-surface-900/50"
+                className="h-full overflow-auto rounded border border-border bg-surface-900/50"
                 style={{ maxHeight: "calc(100vh - 200px)" }}
             >
                 <table className="w-full min-w-[800px] border-collapse">
@@ -149,7 +152,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                             >
                                 <td className={`px-4 py-2 ${primarySortKey === "display_name" ? "bg-primary-500/5" : ""}`}>
                                     <Link
-                                        href={`/items/${encodeURIComponent(item.name)}`}
+                                        href={`/items/${encodeURIComponent(item.name)}${qs}`}
                                         className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
                                     >
                                         {item.display_name || item.name}

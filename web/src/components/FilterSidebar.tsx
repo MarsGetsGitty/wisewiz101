@@ -62,7 +62,7 @@ export function FilterSidebar({
         <aside className="w-full shrink-0 md:w-56">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex w-full items-center justify-between rounded-lg border border-border bg-surface-800 px-4 py-2.5 text-sm font-medium hover:bg-surface-700 md:hidden"
+                className="flex w-full items-center justify-between rounded border border-border bg-surface-800 px-4 py-2.5 text-sm font-medium hover:bg-surface-700 md:hidden"
             >
                 <span>Filters {hasActiveFilters && <span className="text-primary-500">(Active)</span>}</span>
                 <span className="text-xl leading-none">{isOpen ? "−" : "+"}</span>
@@ -73,7 +73,7 @@ export function FilterSidebar({
                 {hasActiveFilters && (
                     <button
                         onClick={onClear}
-                        className="w-full rounded-lg border border-border px-3 py-1.5 text-xs text-foreground/60 transition-colors hover:border-primary-500 hover:text-primary-500"
+                        className="w-full rounded border border-border px-3 py-1.5 text-xs text-foreground/60 transition-colors hover:border-primary-500 hover:text-primary-500"
                     >
                         ✕ Clear All Filters
                     </button>

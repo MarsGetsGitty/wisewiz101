@@ -83,8 +83,17 @@ export function sortItems(
             let aVal: string | number;
             let bVal: string | number;
 
-            // Check if it's a stat key
-            if (key.startsWith("stat:")) {
+            // Check if it's a stat key or rarity
+            if (key === "rarity") {
+                const RARITY_RANK: Record<string, number> = {
+                    RT_COMMON: 1,
+                    RT_UNCOMMON: 2,
+                    RT_RARE: 3,
+                    RT_EPIC: 4,
+                };
+                aVal = RARITY_RANK[a.rarity as string] || 0;
+                bVal = RARITY_RANK[b.rarity as string] || 0;
+            } else if (key.startsWith("stat:")) {
                 const statName = key.slice(5);
                 aVal = a.stats[statName] ?? -Infinity;
                 bVal = b.stats[statName] ?? -Infinity;

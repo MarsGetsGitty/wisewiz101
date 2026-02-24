@@ -111,7 +111,7 @@ export function ItemCard({ item }: ItemCardProps) {
 function MetaChip({ label, color }: { label: string; color?: string }) {
     return (
         <span
-            className="rounded-md border border-border bg-surface-800 px-2.5 py-1 text-xs font-medium"
+            className="rounded border border-border bg-surface-800 px-2.5 py-1 text-xs font-medium"
             style={color ? { borderColor: color, color } : undefined}
         >
             {label}

@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getItemByName } from "@/data/repository";
 import { ItemCard } from "@/components/ItemCard";
 import type { GearItem } from "@/data/types";
 
-export default function ItemDetailPage() {
+function ItemDetailContent() {
     const params = useParams();
+    const searchParams = useSearchParams();
+    const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+
     const name = decodeURIComponent(params.name as string);
     const [item, setItem] = useState<GearItem | null>(null);
     const [loading, setLoading] = useState(true);
@@ -34,7 +37,7 @@ export default function ItemDetailPage() {
         return (
             <div className="p-6">
                 <Link
-                    href="/"
+                    href={`/${qs}`}
                     className="text-sm text-primary-500 hover:text-primary-600 transition-colors"
                 >
                     ← Back to Database
@@ -51,7 +54,7 @@ export default function ItemDetailPage() {
     return (
         <div className="mx-auto max-w-3xl p-6">
             <Link
-                href="/"
+                href={`/${qs}`}
                 className="mb-6 inline-block text-sm text-primary-500 hover:text-primary-600 transition-colors"
             >
                 ← Back to Database
@@ -60,5 +63,17 @@ export default function ItemDetailPage() {
                 <ItemCard item={item} />
             </div>
         </div>
+    );
+}
+
+export default function ItemDetailPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-96 items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+            </div>
+        }>
+            <ItemDetailContent />
+        </Suspense>
     );
 }
