@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.wad_reader import WadArchive
 from src.bind_parser import BINdParser, BIND_MAGIC
+from src.locale_reader import LocaleReader
 
 # Patterns that identify gear ObjectData files
 GEAR_PATH_RE = re.compile(
@@ -64,9 +65,22 @@ class GearExtractor:
         extractor.save_json(items, "output/gear_database.json")
     """
 
-    def __init__(self, wad_path: str = DEFAULT_WAD):
+    def __init__(self, wad_path: str = DEFAULT_WAD, load_locale: bool = True):
         self.wad = WadArchive(wad_path)
         self.parser = BINdParser()
+        self.locale = LocaleReader()
+        if load_locale:
+            self._load_locale()
+
+    def _load_locale(self) -> None:
+        """Load English item display names from locale files in the WAD."""
+        for lang_path in ["Locale/en-US/Items.lang", "Locale/en-US/WizItems.lang"]:
+            try:
+                n = self.locale.load_from_wad(self.wad, lang_path)
+                print(f"Locale: {n:,} names from {lang_path}", file=sys.stderr)
+            except (KeyError, Exception):
+                pass
+        print(f"Locale: {self.locale.count:,} total display names", file=sys.stderr)
 
     def find_gear_files(self) -> list:
         """Find all WAD entries that look like gear item definitions."""
@@ -121,6 +135,11 @@ class GearExtractor:
 
             item = self.parser.parse(raw, source_path=entry.name)
             if item and item.name:
+                # Resolve display name from locale
+                if item.display_name_key:
+                    item.display_name = self.locale.get_by_key(
+                        item.display_name_key
+                    )
                 items.append(item)
 
         elapsed = time.time() - start
@@ -161,8 +180,8 @@ class GearExtractor:
         stat_cols = sorted(all_stats)
 
         fieldnames = [
-            "name", "item_type", "school", "rarity", "level_req",
-            "display_name_key", "flags", "sockets", "set_name",
+            "name", "display_name", "item_type", "school", "rarity",
+            "level_req", "display_name_key", "flags", "sockets", "set_name",
         ] + stat_cols + ["source_path"]
 
         with open(path, "w", newline="", encoding="utf-8") as f:
@@ -171,6 +190,7 @@ class GearExtractor:
             for item in items:
                 row = {
                     "name": item.name,
+                    "display_name": getattr(item, 'display_name', ''),
                     "item_type": item.item_type,
                     "school": item.school,
                     "rarity": item.rarity,

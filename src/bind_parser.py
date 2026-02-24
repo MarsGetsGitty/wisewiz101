@@ -79,6 +79,7 @@ class GearItem:
     source_path: str = ""             # WAD path this came from
     name: str = ""                    # Internal item name
     display_name_key: str = ""        # Locale key (e.g. Items_00008758)
+    display_name: str = ""             # Resolved display name
     item_type: str = ""               # Equipment slot (Hat, Robe, etc.)
     wand_subtype: str = ""            # Wand weapon subtype (Spear, Staff, etc.)
     school: str = ""                  # Magic school
@@ -109,6 +110,7 @@ class GearItem:
         d = {
             "source_path": self.source_path,
             "name": self.name,
+            "display_name": self.display_name,
             "display_name_key": self.display_name_key,
             "item_type": self.item_type,
             "school": self.school,
