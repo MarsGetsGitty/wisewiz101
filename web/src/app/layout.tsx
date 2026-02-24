@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Cinzel } from "next/font/google";
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import "./globals.css";
 
 const outfit = Outfit({
@@ -26,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
         className={`${outfit.variable} ${cinzel.variable} font-sans antialiased selection:bg-primary-500/30`}
       >
@@ -36,7 +37,9 @@ export default function RootLayout({
               WiseWiz101
             </h1>
           </header>
-          <main className="flex-1">{children}</main>
+          <main className="flex-1">
+            <NuqsAdapter>{children}</NuqsAdapter>
+          </main>
         </div>
       </body>
     </html>

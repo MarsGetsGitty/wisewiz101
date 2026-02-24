@@ -3,14 +3,17 @@
 import { useGearData } from "@/hooks/useGearData";
 import { useFilters } from "@/hooks/useFilters";
 import { SearchBar } from "@/components/SearchBar";
+import { useMemo } from "react";
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { GearTable } from "@/components/GearTable";
+import { ColumnPicker } from "@/components/ColumnPicker";
+import { sortStats } from "@/lib/constants";
 
 export default function HomePage() {
   const { items, loading, error, filterOptions } = useGearData();
   const {
     filters,
-    sort,
+    sorts,
     filteredItems,
     setSearch,
     toggleSchool,
@@ -18,8 +21,31 @@ export default function HomePage() {
     toggleRarity,
     setLevelRange,
     toggleSort,
+    toggleColumn,
+    setColumns,
+    clearColumns,
     clearFilters,
   } = useFilters(items);
+
+  const availableStats = useMemo(() => {
+    const stats = new Set<string>();
+    items.forEach((i) => Object.keys(i.stats).forEach((s) => stats.add(s)));
+    return sortStats(Array.from(stats));
+  }, [items]);
+
+  // Stable default columns from the full dataset (not affected by sort/filter)
+  const defaultStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of items) {
+      for (const key of Object.keys(item.stats)) {
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([key]) => key);
+  }, [items]);
 
   if (error) {
     return (
@@ -46,12 +72,15 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 md:flex-row md:p-6">
       <FilterSidebar
         filterOptions={filterOptions}
         activeSchools={filters.schools}
+        excludeSchools={filters.excludeSchools}
         activeTypes={filters.types}
+        excludeTypes={filters.excludeTypes}
         activeRarities={filters.rarities}
+        excludeRarities={filters.excludeRarities}
         levelMin={filters.levelMin}
         levelMax={filters.levelMax}
         onToggleSchool={toggleSchool}
@@ -60,15 +89,29 @@ export default function HomePage() {
         onLevelChange={setLevelRange}
         onClear={clearFilters}
       />
-      <div className="flex flex-1 flex-col gap-4">
-        <SearchBar
-          onSearch={setSearch}
-          resultCount={filteredItems.length}
-          totalCount={items.length}
-        />
+      <div className="flex flex-1 flex-col gap-4 min-w-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="w-full sm:flex-1">
+            <SearchBar
+              onSearch={setSearch}
+              resultCount={filteredItems.length}
+              totalCount={items.length}
+            />
+          </div>
+          <ColumnPicker
+            availableStats={availableStats}
+            activeColumns={filters.columns}
+            defaultStats={defaultStats}
+            onToggleColumn={toggleColumn}
+            onSetColumns={setColumns}
+            onClearColumns={clearColumns}
+          />
+        </div>
         <GearTable
           items={filteredItems}
-          sort={sort}
+          sorts={sorts}
+          activeStats={filters.columns}
+          defaultStats={defaultStats}
           onSort={toggleSort}
         />
       </div>

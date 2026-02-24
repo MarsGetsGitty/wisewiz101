@@ -23,8 +23,11 @@ export interface GearItem {
 export interface GearFilters {
     search: string;
     schools: string[];
+    excludeSchools: string[];
     types: string[];
+    excludeTypes: string[];
     rarities: string[];
+    excludeRarities: string[];
     levelMin: number;
     levelMax: number;
 }

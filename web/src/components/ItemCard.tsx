@@ -10,6 +10,7 @@ import {
     SOCKET_LABELS,
     FLAG_LABELS,
     formatStatName,
+    sortStats,
 } from "@/lib/constants";
 
 interface ItemCardProps {
@@ -59,8 +60,8 @@ export function ItemCard({ item }: ItemCardProps) {
                         Stats
                     </h3>
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {Object.entries(item.stats).map(([name, value]) => (
-                            <StatBadge key={name} name={name} value={value} />
+                        {sortStats(Object.keys(item.stats)).map((name) => (
+                            <StatBadge key={name} name={name} value={item.stats[name]} />
                         ))}
                     </div>
                 </section>

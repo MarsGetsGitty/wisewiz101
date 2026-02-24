@@ -29,8 +29,10 @@
   --color-school-storm: #9a8deb;
 
   /* Stat badge colors */
-  --color-stat-flat: #60a5fa;
-  --color-stat-percent: #f472b6;
+  --color-stat-flat: #cbd5e1;
+  /* Slate-300: Neutral off-white for flat stats */
+  --color-stat-percent: #fbbf24;
+  /* Amber-400: Warm gold for percentage stats */
 
   /* Rarity colors */
   --color-rarity-common: #9ca3af;
@@ -58,13 +60,16 @@
     width: 8px;
     height: 8px;
   }
+
   ::-webkit-scrollbar-track {
     background: var(--color-surface-900);
   }
+
   ::-webkit-scrollbar-thumb {
     background: var(--color-border);
     border-radius: 4px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-primary-700);
   }

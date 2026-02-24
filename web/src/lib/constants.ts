@@ -96,3 +96,45 @@ export const TABLE_COLUMNS = [
     { key: "level_req", label: "Level", sortable: true },
     { key: "rarity", label: "Rarity", sortable: true },
 ] as const;
+
+// Game-authentic logical ordering for stats
+export const STAT_ORDER_CATEGORIES = [
+    // Core Vitals
+    "MaxHealth", "MaxMana", "PowerPip", "Archmastery", "ShadowPipRating",
+
+    // Offense
+    "Damage", "FireDamage", "IceDamage", "StormDamage", "MythDamage", "LifeDamage", "DeathDamage", "BalanceDamage",
+    "ArmorPiercing", "FireArmorPiercing", "IceArmorPiercing", "StormArmorPiercing", "MythArmorPiercing", "LifeArmorPiercing", "DeathArmorPiercing", "BalanceArmorPiercing",
+    "CriticalHit", "FireCriticalHit", "IceCriticalHit", "StormCriticalHit", "MythCriticalHit", "LifeCriticalHit", "DeathCriticalHit", "BalanceCriticalHit",
+
+    // Defense
+    "ReduceDamage", "FireReduceDamage", "IceReduceDamage", "StormReduceDamage", "MythReduceDamage", "LifeReduceDamage", "DeathReduceDamage", "BalanceReduceDamage",
+    "Block", "FireBlock", "IceBlock", "StormBlock", "MythBlock", "LifeBlock", "DeathBlock", "BalanceBlock",
+    "Resist", "FireResist", "IceResist", "StormResist", "MythResist", "LifeResist", "DeathResist", "BalanceResist",
+
+    // Utility
+    "Accuracy", "FireAccuracy", "IceAccuracy", "StormAccuracy", "MythAccuracy", "LifeAccuracy", "DeathAccuracy", "BalanceAccuracy",
+    "PipConversion", "FirePipConversion", "IcePipConversion", "StormPipConversion", "MythPipConversion", "LifePipConversion", "DeathPipConversion", "BalancePipConversion",
+    "HealingInc", "HealingOut", "StunResistance", "FishingLuck", "MaxManaPercentReduce"
+];
+
+const STAT_TO_INDEX = new Map(
+    STAT_ORDER_CATEGORIES.flatMap(cat => [
+        // Map both "All" prefixed and non-prefixed versions to the same logical spot
+        [`All${cat}`, STAT_ORDER_CATEGORIES.indexOf(cat)],
+        [cat, STAT_ORDER_CATEGORIES.indexOf(cat)]
+    ])
+);
+
+/**
+ * Sorts an array of stat names according to their game-authentic logical order.
+ * Unknown stats will be pushed to the end.
+ */
+export function sortStats(stats: string[]): string[] {
+    return [...stats].sort((a, b) => {
+        const idxA = STAT_TO_INDEX.get(a) ?? 999;
+        const idxB = STAT_TO_INDEX.get(b) ?? 999;
+        if (idxA !== idxB) return idxA - idxB;
+        return a.localeCompare(b); // Alphabetical fallback for ties/unknowns
+    });
+}
