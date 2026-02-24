@@ -131,14 +131,23 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 const isSorted = activeSortKeys.includes(col.key);
                                 const isSticky = col.key === "display_name" || isSorted;
                                 const stickyStyle = isSticky ? { left: stickyPositions[col.key] } : undefined;
-                                const stickyClasses = isSticky ? "static md:sticky md:z-20 bg-transparent md:bg-surface-900 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60" : "";
+
+                                const headerBg = isSticky
+                                    ? (isSorted ? "bg-transparent md:bg-[#262426] text-accent-400" : "bg-transparent md:bg-surface-900")
+                                    : (isSorted ? "bg-accent-500/10 text-accent-400" : "");
+
+                                const hoverBg = col.sortable
+                                    ? (isSticky ? "md:hover:bg-[#162032] hover:text-foreground/80 cursor-pointer select-none" : "hover:bg-surface-800/50 hover:text-foreground/80 cursor-pointer select-none")
+                                    : "";
+
+                                const stickyClasses = isSticky ? "static md:sticky md:z-20 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60" : "";
                                 const widthClass = col.key === "display_name" ? "w-[200px]" : col.key === "item_type" ? "w-[140px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]";
 
                                 return (
                                     <th
                                         key={col.key}
                                         onClick={() => col.sortable && onSort(col.key)}
-                                        className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-surface-800/50 hover:text-foreground/80" : ""} ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${stickyClasses} ${widthClass}`}
+                                        className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${hoverBg} ${headerBg} ${stickyClasses} ${widthClass}`}
                                         style={stickyStyle}
                                     >
                                         <span className="flex items-center gap-1.5">
@@ -195,9 +204,9 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                     let bgClasses = "";
                                     if (isSticky) {
                                         if (isSorted) {
-                                            bgClasses = "bg-transparent md:bg-surface-800 md:group-hover:bg-surface-700/80";
+                                            bgClasses = "bg-transparent md:bg-[#1a1d28] md:group-hover:bg-[#232831]";
                                         } else {
-                                            bgClasses = "bg-transparent md:bg-surface-900 md:group-hover:bg-surface-800/80";
+                                            bgClasses = "bg-transparent md:bg-surface-900 md:group-hover:bg-[#182134]";
                                         }
                                     } else {
                                         bgClasses = isSorted ? "bg-accent-500/5" : "";
