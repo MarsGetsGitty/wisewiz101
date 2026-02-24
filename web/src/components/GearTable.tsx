@@ -96,6 +96,16 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
     // Determine which columns are actively sorted to apply highlights
     const activeSortKeys = sorts.map(s => s.key);
 
+    // Dynamically calculate left offsets for sticky columns
+    const stickyPositions: Record<string, number> = {};
+    let currentStickyLeft = 0;
+    for (const col of TABLE_COLUMNS) {
+        if (col.key === "display_name" || activeSortKeys.includes(col.key)) {
+            stickyPositions[col.key] = currentStickyLeft;
+            currentStickyLeft += col.width;
+        }
+    }
+
     const scrollToTop = () => {
         containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -119,12 +129,17 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                             {TABLE_COLUMNS.map((col) => {
                                 const sortInfo = getSortInfo(col.key);
                                 const isSorted = activeSortKeys.includes(col.key);
+                                const isSticky = col.key === "display_name" || isSorted;
+                                const stickyStyle = isSticky ? { left: stickyPositions[col.key] } : undefined;
+                                const stickyClasses = isSticky ? "static md:sticky md:z-20 bg-transparent md:bg-surface-900 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60" : "";
+                                const widthClass = col.key === "display_name" ? "w-[200px]" : col.key === "item_type" ? "w-[140px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]";
+
                                 return (
                                     <th
                                         key={col.key}
                                         onClick={() => col.sortable && onSort(col.key)}
-                                        className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-surface-800/50 hover:text-foreground/80" : ""
-                                            } ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${col.key === "display_name" ? "w-[200px] static md:sticky left-0 md:z-20 bg-transparent md:bg-surface-900 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60" : col.key === "item_type" ? "w-[140px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]"}`}
+                                        className={`border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-foreground/50 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-surface-800/50 hover:text-foreground/80" : ""} ${isSorted ? "bg-accent-500/10 text-accent-400" : ""} ${stickyClasses} ${widthClass}`}
+                                        style={stickyStyle}
                                     >
                                         <span className="flex items-center gap-1.5">
                                             {col.label}
@@ -172,40 +187,84 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 className="group border-b border-border/30 transition-colors hover:bg-surface-800/60"
                                 style={{ height: ROW_HEIGHT }}
                             >
-                                <td className={`px-4 py-2 ${activeSortKeys.includes("item_type") ? "bg-accent-500/5" : ""}`}>
-                                    <div className="truncate text-sm text-foreground/60">
-                                        {item.item_type}
-                                    </div>
-                                </td>
-                                <td className={`px-4 py-2 overflow-hidden ${activeSortKeys.includes("display_name") ? "bg-accent-500/10" : "bg-transparent md:bg-surface-900 md:group-hover:bg-surface-800/80"} transition-colors static md:sticky left-0 md:z-10 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60`}>
-                                    <HoverMarqueeLink
-                                        href={`/items/${encodeURIComponent(item.name)}${qs}`}
-                                        className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
-                                    >
-                                        {item.display_name || item.name}
-                                    </HoverMarqueeLink>
-                                </td>
-                                <td className={`px-4 py-2 ${activeSortKeys.includes("school") ? "bg-accent-500/5" : ""}`}>
-                                    {item.school && (
-                                        <span
-                                            className="text-sm"
-                                            style={{ color: SCHOOL_COLORS[item.school] }}
-                                        >
-                                            {SCHOOL_EMOJI[item.school]} {item.school}
-                                        </span>
-                                    )}
-                                </td>
-                                <td className={`px-4 py-2 text-sm text-foreground/60 ${activeSortKeys.includes("level_req") ? "bg-accent-500/5" : ""}`}>
-                                    {item.level_req || "—"}
-                                </td>
-                                <td className={`px-4 py-2 ${activeSortKeys.includes("rarity") ? "bg-accent-500/5" : ""}`}>
-                                    <span
-                                        className="text-xs font-medium"
-                                        style={{ color: RARITY_COLORS[item.rarity] }}
-                                    >
-                                        {RARITY_LABELS[item.rarity] || "—"}
-                                    </span>
-                                </td>
+                                {TABLE_COLUMNS.map((col) => {
+                                    const isSorted = activeSortKeys.includes(col.key);
+                                    const isSticky = col.key === "display_name" || isSorted;
+                                    const stickyStyle = isSticky ? { left: stickyPositions[col.key] } : undefined;
+
+                                    let bgClasses = "";
+                                    if (isSticky) {
+                                        if (isSorted) {
+                                            bgClasses = "bg-transparent md:bg-surface-800 md:group-hover:bg-surface-700/80";
+                                        } else {
+                                            bgClasses = "bg-transparent md:bg-surface-900 md:group-hover:bg-surface-800/80";
+                                        }
+                                    } else {
+                                        bgClasses = isSorted ? "bg-accent-500/5" : "";
+                                    }
+
+                                    const stickyClasses = isSticky
+                                        ? "static md:sticky md:z-10 shadow-none md:shadow-[4px_0_8px_-4px_rgba(0,0,0,0.5)] after:hidden md:after:absolute md:after:inset-y-0 md:after:right-0 md:after:w-[2px] md:after:bg-border/60"
+                                        : "";
+
+                                    const cellClasses = `px-4 py-2 overflow-hidden transition-colors ${bgClasses} ${stickyClasses}`;
+
+                                    if (col.key === "item_type") {
+                                        return (
+                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
+                                                <div className="truncate text-sm text-foreground/60">
+                                                    {item.item_type}
+                                                </div>
+                                            </td>
+                                        );
+                                    }
+                                    if (col.key === "display_name") {
+                                        return (
+                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
+                                                <HoverMarqueeLink
+                                                    href={`/items/${encodeURIComponent(item.name)}${qs}`}
+                                                    className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
+                                                >
+                                                    {item.display_name || item.name}
+                                                </HoverMarqueeLink>
+                                            </td>
+                                        );
+                                    }
+                                    if (col.key === "school") {
+                                        return (
+                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
+                                                {item.school && (
+                                                    <span
+                                                        className="text-sm"
+                                                        style={{ color: SCHOOL_COLORS[item.school] }}
+                                                    >
+                                                        {SCHOOL_EMOJI[item.school]} {item.school}
+                                                    </span>
+                                                )}
+                                            </td>
+                                        );
+                                    }
+                                    if (col.key === "level_req") {
+                                        return (
+                                            <td key={col.key} className={`text-sm text-foreground/60 ${cellClasses}`} style={stickyStyle}>
+                                                {item.level_req || "—"}
+                                            </td>
+                                        );
+                                    }
+                                    if (col.key === "rarity") {
+                                        return (
+                                            <td key={col.key} className={cellClasses} style={stickyStyle}>
+                                                <span
+                                                    className="text-xs font-medium"
+                                                    style={{ color: RARITY_COLORS[item.rarity] }}
+                                                >
+                                                    {RARITY_LABELS[item.rarity] || item.rarity || "—"}
+                                                </span>
+                                            </td>
+                                        );
+                                    }
+                                    return null;
+                                })}
                                 {displayStats.map((stat, i) => (
                                     <td
                                         key={stat}
