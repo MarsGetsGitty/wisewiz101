@@ -163,7 +163,7 @@ class GearExtractor:
     def save_json(items: list, path: str) -> None:
         """Save gear items as a JSON array."""
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-        data = [item.to_dict() for item in items]
+        data = [item.to_dict(include_raw=True) for item in items]
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         print(f"Saved {len(data):,} items to {path}", file=sys.stderr)

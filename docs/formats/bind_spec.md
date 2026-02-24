@@ -37,6 +37,16 @@ Stat entries follow this exact byte pattern:
 [hash 0x78F28C29] ... [length_byte] [stat_name_string] [8-byte gap] [int32LE value]
 ```
 
+### The Offset Quirks
+The `int32LE` value extracted from the binary is **never** the actual player-facing display value. It is subjected to mathematical biases depending on the stat classification (see `docs/domain/stat_model_spec.md` for explicit mappings).
+
+1. **Percentage Stats** (e.g., `Damage`, `Resist`): Stored with a `+100` bias and a `-1` offset.
+   *Formula: `display_value = raw_value - 99`*
+2. **Flat Stats** (e.g., `MaxHealth`, `CriticalHit`): Stored with a simple `-1` offset.
+   *Formula: `display_value = raw_value + 1`*
+3. **Boolean Stats** (e.g., `Mastery` amulets): Stored correctly, no offset.
+   *Formula: `display_value = raw_value`*
+
 ### Known Constants
 
 | Constant | Value | Meaning |

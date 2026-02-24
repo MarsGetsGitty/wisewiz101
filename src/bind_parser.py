@@ -13,6 +13,7 @@
 #   - Root class hash 0x3B1F88D1 identifies item object files
 
 import struct
+from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -24,42 +25,104 @@ STAT_PROPERTY_HASH = 0x78F28C29
 # 8-byte sequence between stat name string and its int32 value
 STAT_VALUE_GAP = bytes([0x60, 0x00, 0x00, 0x00, 0xCC, 0x4F, 0xF4, 0x60])
 
-# Stat value correction:
-#   ALL raw values are off by -1 (display = raw + 1)
-#   Percentage stats additionally have a +100 bias in their raw value
-#   so: percentage_display = raw - 100 + 1 = raw - 99
-#
-# Stats that are percentage-based (contain the +100 bias):
+
+class StatType(Enum):
+    FLAT = "FLAT"           # e.g., Health, Critical
+    PERCENTAGE = "PERCENT"  # e.g., Damage, Resist
+    BOOLEAN = "BOOLEAN"     # e.g., Mastery amulets
+
+
+@dataclass(frozen=True)
+class StatValue:
+    """Value Object representing a single stat and its encoding logic."""
+    name: str
+    raw: int
+    type: StatType
+
+    @property
+    def display_value(self) -> int:
+        """The canonical value as seen by the player in-game."""
+        if self.type == StatType.PERCENTAGE:
+            return self.raw - 99
+        elif self.type == StatType.FLAT:
+            return self.raw + 1
+        return self.raw  # Boolean or unknown
+
+    def __repr__(self):
+        suffix = "%" if self.type == StatType.PERCENTAGE else ""
+        return f"{self.display_value}{suffix} (raw: {self.raw})"
+
+
+# ==============================================================================
+# Stat Taxonomy (Exhaustive Classification of 92 Known Stats)
+# ==============================================================================
+
 PERCENTAGE_STATS = frozenset({
-    # School damage
-    "AllDamage", "FireDamage", "IceDamage", "StormDamage",
-    "MythDamage", "LifeDamage", "DeathDamage", "BalanceDamage",
-    "ShadowDamage",
-    # School accuracy
-    "AllAccuracy", "FireAccuracy", "IceAccuracy", "StormAccuracy",
-    "MythAccuracy", "LifeAccuracy", "DeathAccuracy", "BalanceAccuracy",
-    # Armor piercing
-    "AllArmorPiercing", "FireArmorPiercing", "IceArmorPiercing",
-    "StormArmorPiercing", "MythArmorPiercing", "LifeArmorPiercing",
-    "DeathArmorPiercing", "BalanceArmorPiercing", "ShadowArmorPiercing",
-    # Resist (reduce damage)
-    "AllReduceDamage", "FireReduceDamage", "IceReduceDamage",
-    "StormReduceDamage", "MythReduceDamage", "LifeReduceDamage",
-    "DeathReduceDamage", "BalanceReduceDamage", "ShadowReduceDamage",
-    # Pip conversion
-    "AllPipConversion", "FirePipConversion", "IcePipConversion",
-    "StormPipConversion", "MythPipConversion", "LifePipConversion",
-    "DeathPipConversion", "BalancePipConversion",
-    # Power pip chance
-    "PowerPip",
-    # Healing
-    "LifeHealing", "IncHealing",
-    # Mastery
-    "FireMastery", "IceMastery", "StormMastery",
-    "MythMastery", "LifeMastery", "DeathMastery", "BalanceMastery",
-    # Other percentage stats
-    "MaxManaPercentReduce",
+    # Accuracy (8)
+    "AllAccuracy", "BalanceAccuracy", "DeathAccuracy", "FireAccuracy", 
+    "IceAccuracy", "LifeAccuracy", "MythAccuracy", "StormAccuracy",
+    # ArmorPiercing (9)
+    "AllArmorPiercing", "BalanceArmorPiercing", "DeathArmorPiercing", 
+    "FireArmorPiercing", "IceArmorPiercing", "LifeArmorPiercing", 
+    "MythArmorPiercing", "ShadowArmorPiercing", "StormArmorPiercing",
+    # Damage (9)
+    "AllDamage", "BalanceDamage", "DeathDamage", "FireDamage", 
+    "IceDamage", "LifeDamage", "MythDamage", "ShadowDamage", "StormDamage",
+    # ReduceDamage (9)
+    "AllReduceDamage", "BalanceReduceDamage", "DeathReduceDamage", 
+    "FireReduceDamage", "IceReduceDamage", "LifeReduceDamage", 
+    "MythReduceDamage", "ShadowReduceDamage", "StormReduceDamage",
+    # Healing (2)
+    "IncHealing", "LifeHealing",
+    # Other (4)
+    "AllFishingLuck", "MaxManaPercentReduce", "PowerPip", "StunResistance",
 })
+
+FLAT_STATS = frozenset({
+    # Health/Mana/Energy (3)
+    "MaxHealth", "MaxMana", "MaxEnergy",
+    # Block (9)
+    "AllBlock", "BalanceBlock", "DeathBlock", "FireBlock", 
+    "IceBlock", "LifeBlock", "MythBlock", "ShadowBlock", "StormBlock",
+    # CriticalHit (8)
+    "AllCriticalHit", "BalanceCriticalHit", "DeathCriticalHit", 
+    "FireCriticalHit", "IceCriticalHit", "LifeCriticalHit", 
+    "MythCriticalHit", "StormCriticalHit",
+    # FlatDamage (7)
+    "BalanceFlatDamage", "DeathFlatDamage", "FireFlatDamage", 
+    "IceFlatDamage", "LifeFlatDamage", "MythFlatDamage", "StormFlatDamage",
+    # FlatReduceDamage (7)
+    "BalanceFlatReduceDamage", "DeathFlatReduceDamage", "FireFlatReduceDamage", 
+    "IceFlatReduceDamage", "LifeFlatReduceDamage", "MythFlatReduceDamage", 
+    "StormFlatReduceDamage",
+    # PipConversion (8)
+    "AllPipConversion", "BalancePipConversion", "DeathPipConversion", 
+    "FirePipConversion", "IcePipConversion", "LifePipConversion", 
+    "MythPipConversion", "StormPipConversion",
+    # Other (2)
+    "AllArchmastery", "ShadowPipRating",
+})
+
+BOOLEAN_STATS = frozenset({
+    # Mastery (7)
+    "BalanceMastery", "DeathMastery", "FireMastery", "IceMastery", 
+    "LifeMastery", "MythMastery", "StormMastery",
+})
+
+def classify_stat(name: str) -> StatType:
+    """Classify a known stat name into its structural type."""
+    if name in PERCENTAGE_STATS:
+        return StatType.PERCENTAGE
+    elif name in FLAT_STATS:
+        return StatType.FLAT
+    elif name in BOOLEAN_STATS:
+        return StatType.BOOLEAN
+    
+    # Fallback to FLAT and log (in a real app, we'd log a warning)
+    # print(f"WARNING: Unknown stat '{name}' defaulted to FLAT classification.")
+    return StatType.FLAT
+
+# ==============================================================================
 
 # Equipment slot types (as they appear in BINd strings)
 EQUIPMENT_TYPES = frozenset({
@@ -123,7 +186,7 @@ class GearItem:
     rarity: str = ""                  # RT_COMMON, RT_EPIC, etc.
     flags: list[str] = field(default_factory=list)
     sockets: list[str] = field(default_factory=list)
-    stats: dict[str, int] = field(default_factory=dict)
+    _stats: dict[str, StatValue] = field(default_factory=dict)
     behaviors: list[str] = field(default_factory=list)
     adjref: str = ""                  # Adjacency reference
     set_name: str = ""                # Set bonus name (if any)
@@ -133,16 +196,26 @@ class GearItem:
     bind_version: int = 0
     class_hash: int = 0
 
+    def add_stat(self, name: str, raw_value: int) -> None:
+        """Factory method to classify and add a stat VO."""
+        stat_type = classify_stat(name)
+        self._stats[name] = StatValue(name=name, raw=raw_value, type=stat_type)
+
+    @property
+    def stats(self) -> dict[str, int]:
+        """Gets consumer-ready, math-corrected stat values."""
+        return {name: vo.display_value for name, vo in self._stats.items()}
+
     @property
     def is_blank(self) -> bool:
         """Blank templates have no stats and minimal data."""
-        return not self.stats and not self.flags
+        return not self._stats and not self.flags
 
     @property
     def has_stats(self) -> bool:
-        return bool(self.stats)
+        return bool(self._stats)
 
-    def to_dict(self) -> dict:
+    def to_dict(self, include_raw: bool = False) -> dict:
         """Convert to a plain dict for JSON serialization."""
         d = {
             "source_path": self.source_path,
@@ -154,7 +227,7 @@ class GearItem:
             "rarity": self.rarity,
             "flags": self.flags,
             "sockets": self.sockets,
-            "stats": self.stats,
+            "stats": self.stats,   # The default behavior is correct display stats
             "behaviors": self.behaviors,
             "adjref": self.adjref,
             "set_name": self.set_name,
@@ -163,6 +236,10 @@ class GearItem:
         }
         if self.wand_subtype:
             d["wand_subtype"] = self.wand_subtype
+            
+        if include_raw:
+            d["raw_stats"] = {name: vo.raw for name, vo in self._stats.items()}
+            
         return d
 
 
@@ -325,9 +402,6 @@ class BINdParser:
 
         Pattern: After a stat name string, there's an 8-byte gap
         (60 00 00 00 CC 4F F4 60) followed by the stat value as int32LE.
-
-        NOTE: Raw values are currently stored as-is. There is a known
-        universal -1 offset vs wiki display values — root cause TBD.
         """
         for s in strings:
             text = s["text"]
@@ -346,7 +420,7 @@ class BINdParser:
                     value = struct.unpack_from("<i", data, gap_end)[0]
                     # Strip "Canonical" prefix for cleaner stat names
                     stat_name = text[9:]  # Remove "Canonical"
-                    item.stats[stat_name] = value
+                    item.add_stat(stat_name, value)
 
     @staticmethod
     def _level_from_path(path: str) -> int:
