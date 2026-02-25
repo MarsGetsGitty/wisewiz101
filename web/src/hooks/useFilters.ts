@@ -69,25 +69,12 @@ export function useFilters(items: GearItem[]) {
     );
 
     const toggleType = useCallback(
-        (type: string) => {
-            let nextInc = [...filters.types];
-            let nextExc = [...filters.excludeTypes];
-
-            if (nextInc.includes(type)) {
-                nextInc = nextInc.filter((t) => t !== type);
-                nextExc.push(type);
-            } else if (nextExc.includes(type)) {
-                nextExc = nextExc.filter((t) => t !== type);
-            } else {
-                nextInc.push(type);
-            }
-
+        (type: string | null) => {
             setFilters({
-                types: nextInc.length > 0 ? nextInc : null,
-                excludeTypes: nextExc.length > 0 ? nextExc : null,
+                types: type ? [type] : null,
             });
         },
-        [filters.types, filters.excludeTypes, setFilters],
+        [setFilters],
     );
 
     const toggleRarity = useCallback(

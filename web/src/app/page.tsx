@@ -8,6 +8,7 @@ import { FilterSidebar } from "@/components/FilterSidebar";
 import { GearTable } from "@/components/GearTable";
 import { ColumnPicker } from "@/components/ColumnPicker";
 import { sortStats } from "@/lib/constants";
+import { TypeTabs } from "@/components/TypeTabs";
 
 export default function HomePage() {
   const { items, loading, error, filterOptions } = useGearData();
@@ -79,14 +80,11 @@ export default function HomePage() {
         filterOptions={filterOptions}
         activeSchools={filters.schools}
         excludeSchools={filters.excludeSchools}
-        activeTypes={filters.types}
-        excludeTypes={filters.excludeTypes}
         activeRarities={filters.rarities}
         excludeRarities={filters.excludeRarities}
         levelMin={filters.levelMin}
         levelMax={filters.levelMax}
         onToggleSchool={toggleSchool}
-        onToggleType={toggleType}
         onToggleRarity={toggleRarity}
         onLevelChange={setLevelRange}
         showStatHats={filters.showStatHats}
@@ -96,6 +94,11 @@ export default function HomePage() {
         onClear={clearFilters}
       />
       <div className="flex flex-1 flex-col gap-4 min-w-0">
+        <TypeTabs
+          availableTypes={filterOptions.types}
+          activeType={filters.types[0] || null} // nuqs still parses array, we treat it as single-select
+          onSelectType={toggleType}
+        />
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="w-full sm:flex-1">
             <SearchBar
@@ -119,6 +122,7 @@ export default function HomePage() {
           activeStats={filters.columns}
           defaultStats={defaultStats}
           onSort={toggleSort}
+          activeType={filters.types[0] || null} // pass activeType down so table can hide subtitles
         />
       </div>
     </div>

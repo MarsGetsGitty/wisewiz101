@@ -9,6 +9,7 @@ interface TableCellMetaProps {
     isSticky: boolean;
     stickyStyle?: React.CSSProperties;
     queryString: string;
+    showTypeSubtitle?: boolean;
 }
 
 export const TableCellMeta = ({
@@ -18,6 +19,7 @@ export const TableCellMeta = ({
     isSticky,
     stickyStyle,
     queryString,
+    showTypeSubtitle,
 }: TableCellMetaProps) => {
     // Mobile fallback fix: ensuring we use bg-accent-500/5 on mobile for sorted headers,
     // and explicitly translating onto hex strictly on md+ breakpoints when sticky.
@@ -38,22 +40,22 @@ export const TableCellMeta = ({
 
     const cellClasses = `px-4 py-2 overflow-hidden transition-colors ${bgClasses} ${stickyClasses}`;
 
-    if (colKey === "item_type") {
-        return (
-            <td className={cellClasses} style={stickyStyle}>
-                <div className="truncate text-sm text-foreground/60">{item.item_type}</div>
-            </td>
-        );
-    }
     if (colKey === "display_name") {
         return (
             <td className={cellClasses} style={stickyStyle}>
-                <HoverMarqueeLink
-                    href={`/items/${encodeURIComponent(item.name)}${queryString}`}
-                    className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
-                >
-                    {item.display_name || item.name}
-                </HoverMarqueeLink>
+                <div className="flex flex-col justify-center min-w-0 w-full">
+                    <HoverMarqueeLink
+                        href={`/items/${encodeURIComponent(item.name)}${queryString}`}
+                        className="text-sm font-medium text-foreground hover:text-accent-500 transition-colors"
+                    >
+                        {item.display_name || item.name}
+                    </HoverMarqueeLink>
+                    {showTypeSubtitle && (
+                        <span className="text-[10px] uppercase tracking-wider text-foreground/40 font-semibold mt-0.5">
+                            {item.item_type || "Unknown"}
+                        </span>
+                    )}
+                </div>
             </td>
         );
     }

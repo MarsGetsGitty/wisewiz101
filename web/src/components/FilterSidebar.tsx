@@ -17,14 +17,11 @@ interface FilterSidebarProps {
     };
     activeSchools: string[];
     excludeSchools: string[];
-    activeTypes: string[];
-    excludeTypes: string[];
     activeRarities: string[];
     excludeRarities: string[];
     levelMin: number;
     levelMax: number;
     onToggleSchool: (school: string) => void;
-    onToggleType: (type: string) => void;
     onToggleRarity: (rarity: string) => void;
     onLevelChange: (min: number, max: number) => void;
     showStatHats: boolean;
@@ -38,14 +35,11 @@ export function FilterSidebar({
     filterOptions,
     activeSchools,
     excludeSchools,
-    activeTypes,
-    excludeTypes,
     activeRarities,
     excludeRarities,
     levelMin,
     levelMax,
     onToggleSchool,
-    onToggleType,
     onToggleRarity,
     onLevelChange,
     showStatHats,
@@ -57,8 +51,6 @@ export function FilterSidebar({
     const hasActiveFilters =
         activeSchools.length > 0 ||
         excludeSchools?.length > 0 ||
-        activeTypes.length > 0 ||
-        excludeTypes?.length > 0 ||
         activeRarities.length > 0 ||
         excludeRarities?.length > 0 ||
         levelMin > 0 ||
@@ -96,19 +88,6 @@ export function FilterSidebar({
                             active={activeSchools.includes(school)}
                             color={SCHOOL_COLORS[school]}
                             onClick={() => onToggleSchool(school)}
-                        />
-                    ))}
-                </FilterSection>
-
-                {/* Equipment Type */}
-                <FilterSection title="Type">
-                    {filterOptions.types.map((type) => (
-                        <FilterChip
-                            key={type}
-                            label={type}
-                            active={activeTypes.includes(type)}
-                            excluded={excludeTypes?.includes(type)}
-                            onClick={() => onToggleType(type)}
                         />
                     ))}
                 </FilterSection>

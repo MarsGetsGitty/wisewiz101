@@ -14,6 +14,7 @@ interface GearTableProps {
     activeStats: string[];
     defaultStats: string[];
     onSort: (key: string) => void;
+    activeType?: string | null;
 }
 
 
@@ -21,7 +22,7 @@ interface GearTableProps {
 const ROW_HEIGHT = 44;
 const OVERSCAN = 10;
 
-export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: GearTableProps) {
+export function GearTable({ items, sorts, activeStats, defaultStats, onSort, activeType }: GearTableProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
     const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
@@ -83,9 +84,9 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
     };
 
     // Calculate dynamic table width to prevent column squashing when many stats are selected
-    const METADATA_WIDTH = 640; // Sum of fixed widths: 140 + 200 + 120 + 80 + 100
+    const METADATA_WIDTH = 580; // Sum of fixed widths: 280 + 120 + 80 + 100
     const STAT_COLUMN_WIDTH = 120;
-    const tableWidth = Math.max(1200, METADATA_WIDTH + displayStats.length * STAT_COLUMN_WIDTH);
+    const tableWidth = Math.max(1140, METADATA_WIDTH + displayStats.length * STAT_COLUMN_WIDTH);
 
     return (
         <div className="relative flex-1 min-h-0">
@@ -102,7 +103,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                 const sortInfo = getSortInfo(col.key);
                                 const isSorted = activeSortKeys.includes(col.key);
                                 const isSticky = col.key === "display_name" || isSorted;
-                                const widthClass = col.key === "display_name" ? "w-[200px]" : col.key === "item_type" ? "w-[140px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]";
+                                const widthClass = col.key === "display_name" ? "w-[280px]" : col.key === "school" ? "w-[120px]" : col.key === "level_req" ? "w-[80px]" : "w-[100px]";
 
                                 return (
                                     <TableColumnHeader
@@ -169,6 +170,7 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort }: G
                                             isSticky={isSticky}
                                             stickyStyle={stickyStyle}
                                             queryString={qs}
+                                            showTypeSubtitle={!activeType}
                                         />
                                     );
                                 })}
