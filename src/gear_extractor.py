@@ -148,17 +148,79 @@ class GearExtractor:
                 p_lower_full = p.lower()
                 
                 parts = p.replace("_", "-").split("-")
-                if p_lower_full:
-                    if "crown" in p_lower_full:
-                        item.acquisition_type = "Crowns"
-                    elif "drop" in p_lower_full:
+
+                # --- Acquisition Type: 3-layer classification ---
+                # Layer 1: Binary signals (most authoritative)
+                strings = self.parser._extract_strings(raw)
+                binary_acq = self.parser._acquisition_from_binary(strings)
+                
+                if binary_acq == "Crafted":
+                    item.acquisition_type = "Crafted"
+                elif p_lower_full and "craft" in p_lower_full:
+                    # Layer 2a: Path substring "craft" → Crafted
+                    item.acquisition_type = "Crafted"
+                elif p_lower_full and "vendor" in p_lower_full:
+                    item.acquisition_type = "Vendor"
+                elif p_lower_full and ("pvp" in p_lower_full or "arena" in p_lower_full):
+                    item.acquisition_type = "PVP"
+                elif p_lower_full and "drop" in p_lower_full:
+                    item.acquisition_type = "Drop"
+                elif p_lower_full and "crown" in p_lower_full:
+                    item.acquisition_type = "Crowns"
+                elif binary_acq == "Crowns":
+                    # FLAG_CrownsOnly from binary (after path checks)
+                    item.acquisition_type = "Crowns"
+                else:
+                    # Layer 2b: Folder-based classification
+                    folder = ""
+                    sp = item.source_path or ""
+                    sp_parts = sp.split("/")
+                    if len(sp_parts) >= 2:
+                        folder = sp_parts[1]
+                    
+                    folder_lower = folder.lower()
+
+                    # Pack gear (Crown shop packs / SpecialSets)
+                    if folder == "SpecialSets":
+                        item.acquisition_type = "Pack"
+                    # World-specific equipment folders → Drop
+                    elif folder_lower.endswith("equipment") or folder.startswith("Tier"):
                         item.acquisition_type = "Drop"
-                    elif "craft" in p_lower_full:
-                        item.acquisition_type = "Crafted"
-                    elif "pvp" in p_lower_full or "arena" in p_lower_full:
+                    # Aquila, DM, KT-SE and other mixed world folders → Drop
+                    elif folder in ("Aquila Gear", "DM Equipment",
+                                    "KT-SE Equipment", "Rematch Equipment",
+                                    "Raids Equipment"):
+                        item.acquisition_type = "Drop"
+                    # Gauntlet drops
+                    elif folder == "Gauntlet":
+                        item.acquisition_type = "Gauntlet"
+                    # Special dungeon content → Dungeon
+                    elif folder in ("Ultra Dungeons", "OneShotDungeons",
+                                    "SkeletonKeys", "ItemSetBonus",
+                                    "Boss Rematch"):
+                        item.acquisition_type = "Dungeon"
+                    # Tournament + Battlegrounds → PVP
+                    elif folder_lower.startswith("tourney") or folder == "Battlegrounds":
                         item.acquisition_type = "PVP"
-                    elif "vendor" in p_lower_full:
-                        item.acquisition_type = "Vendor"
+                    # Holiday + Derby → Event
+                    elif folder in ("Holiday", "DerbyGear"):
+                        item.acquisition_type = "Event"
+                    # MonsterItems, Socket Retrofit, Durable → Drop
+                    elif folder in ("MonsterItems", "Socket Equippable Retrofit",
+                                    "Durable Items"):
+                        item.acquisition_type = "Drop"
+                    # Purchased Character Gear → Crowns
+                    elif folder == "Purchased Character Gear":
+                        item.acquisition_type = "Crowns"
+                    # Blanks (cosmetics) → Crowns
+                    elif folder == "Blanks":
+                        item.acquisition_type = "Crowns"
+                    # PVP folder items not caught by path → PVP
+                    elif folder == "PVP":
+                        item.acquisition_type = "PVP"
+                    # Default fallback → Drop
+                    else:
+                        item.acquisition_type = "Drop"
 
                 for part in parts:
                     if re.match(r"^[ST]\d+$", part):

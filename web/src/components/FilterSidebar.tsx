@@ -143,10 +143,14 @@ export function FilterSidebar({
                 <FilterSection title="Acquisition Source">
                     {[
                         { id: "Crowns", title: "👑 Crowns" },
+                        { id: "Pack", title: "🎁 Pack" },
                         { id: "Drop", title: "⚔️ Drop" },
+                        { id: "Dungeon", title: "🏰 Dungeon" },
+                        { id: "Gauntlet", title: "🏠 Gauntlet" },
                         { id: "Crafted", title: "🔨 Crafted" },
-                        { id: "Vendor", title: "💰 Vendor" },
                         { id: "PVP", title: "🛡️ PVP" },
+                        { id: "Event", title: "🎉 Event" },
+                        { id: "Vendor", title: "💰 Vendor" },
                     ].map((src) => (
                         <FilterChip
                             key={src.id}

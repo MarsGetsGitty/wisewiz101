@@ -455,6 +455,27 @@ class BINdParser:
         return 0
 
     @staticmethod
+    def _acquisition_from_binary(strings: list[dict]) -> str | None:
+        """
+        Extract acquisition type from BINd binary strings.
+
+        Checks for authoritative game engine signals:
+        - 'Crafted' string  → item is crafted (highest confidence)
+        - 'FLAG_CrownsOnly' → item is from Crown Shop
+        
+        Returns None if no acquisition signal found in binary.
+        """
+        for s in strings:
+            text = s["text"]
+            if text == "Crafted":
+                return "Crafted"
+        for s in strings:
+            text = s["text"]
+            if text == "FLAG_CrownsOnly":
+                return "Crowns"
+        return None
+
+    @staticmethod
     def _level_from_path(path: str) -> int:
         """
         Fallback: try to extract a level number from the WAD file path.
