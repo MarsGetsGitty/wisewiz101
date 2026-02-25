@@ -35,7 +35,7 @@ function categorizeStats(stats: string[]) {
         // Offense Mechanics
         else if (stat.includes("FlatDamage")) {
             groups["Flat Damage"].push(stat);
-        } else if (stat.includes("Damage")) { // Has to execute after FlatDamage
+        } else if (stat.includes("Damage") && !stat.includes("ReduceDamage")) {
             groups["Damage %"].push(stat);
         } else if (stat.includes("ArmorPiercing")) {
             groups["Armor Piercing"].push(stat);
