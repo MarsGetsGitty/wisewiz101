@@ -283,8 +283,10 @@ class BINdParser:
         # Extract stat values using the gap pattern
         self._extract_stat_values(item, strings, data)
 
-        # Try to extract level from source path
-        item.level_req = self._level_from_path(source_path)
+        # Extract level requirement from binary data, fallback to path heuristic
+        item.level_req = self._level_from_binary(strings, data)
+        if item.level_req == 0:
+            item.level_req = self._level_from_path(source_path)
 
         # Path-based type fallback if no type found in strings
         if not item.item_type:
@@ -431,9 +433,31 @@ class BINdParser:
                     item.add_stat(stat_name, value)
 
     @staticmethod
+    def _level_from_binary(strings: list[dict], data: bytes) -> int:
+        """
+        Extract level requirement from the BINd requirement expression tree.
+
+        The game stores equip requirements as an expression tree:
+            ROP_AND -> OPERATOR_GREATER_THAN_EQ -> <level as float32>
+
+        The level is encoded as an IEEE 754 float32 (little-endian) in the
+        bytes immediately before the OPERATOR_GREATER_THAN_EQ string.
+        """
+        for s in strings:
+            if s["text"] == "OPERATOR_GREATER_THAN_EQ":
+                op_pos = s["pos"]
+                # Scan the 30 bytes before the operator for a plausible level float
+                for off in range(max(0, op_pos - 30), op_pos):
+                    if off + 4 <= len(data):
+                        fval = struct.unpack_from("<f", data, off)[0]
+                        if 1.0 <= fval <= 200.0 and fval == int(fval):
+                            return int(fval)
+        return 0
+
+    @staticmethod
     def _level_from_path(path: str) -> int:
         """
-        Try to extract a level number from the WAD file path.
+        Fallback: try to extract a level number from the WAD file path.
         E.g. "Athame-AQ-L90-001" -> 90
         """
         import re
