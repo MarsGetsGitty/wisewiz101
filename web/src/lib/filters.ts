@@ -81,6 +81,35 @@ export function filterItems(
             return false;
         }
 
+        // Acquisition Sources Filter
+        if (
+            filters.sources &&
+            filters.sources.length > 0 &&
+            (!item.acquisition_type || !filters.sources.includes(item.acquisition_type))
+        ) {
+            return false;
+        }
+
+        // Sets Only Filter
+        if (filters.setsOnly && !item.set_id) {
+            return false;
+        }
+
+
+        // Required Sockets Filter (item MUST have AT LEAST ONE of the required sockets)
+        if (filters.requiredSockets && filters.requiredSockets.length > 0) {
+            let hasSocket = false;
+            if (item.sockets) {
+                for (const reqSocket of filters.requiredSockets) {
+                    if (item.sockets.includes(reqSocket)) {
+                        hasSocket = true;
+                        break;
+                    }
+                }
+            }
+            if (!hasSocket) return false;
+        }
+
         return true;
     });
 }

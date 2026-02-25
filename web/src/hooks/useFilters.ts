@@ -21,6 +21,8 @@ export function useFilters(items: GearItem[]) {
         showStatHats: parseAsBoolean.withDefault(false),
         showDeveloperGear: parseAsBoolean.withDefault(false),
         sources: parseAsArrayOf(parseAsString).withDefault([]),
+        requiredSockets: parseAsArrayOf(parseAsString).withDefault([]),
+        setsOnly: parseAsBoolean.withDefault(false),
     });
 
     const activeSorts: SortConfig[] = useMemo(() => {
@@ -166,6 +168,9 @@ export function useFilters(items: GearItem[]) {
             columns: null,
             showStatHats: null,
             showDeveloperGear: null,
+            sources: null,
+            requiredSockets: null,
+            setsOnly: null,
         });
     }, [setFilters]);
 
@@ -175,6 +180,10 @@ export function useFilters(items: GearItem[]) {
 
     const toggleShowDeveloperGear = useCallback(() => {
         setFilters((prev) => ({ showDeveloperGear: !prev.showDeveloperGear }));
+    }, [setFilters]);
+
+    const toggleSetsOnly = useCallback(() => {
+        setFilters((prev) => ({ setsOnly: !prev.setsOnly }));
     }, [setFilters]);
 
     const toggleColumn = useCallback(
@@ -208,6 +217,16 @@ export function useFilters(items: GearItem[]) {
         [filters.sources, setFilters],
     );
 
+    const toggleRequiredSocket = useCallback(
+        (socket: string) => {
+            const next = filters.requiredSockets.includes(socket)
+                ? filters.requiredSockets.filter(s => s !== socket)
+                : [...filters.requiredSockets, socket];
+            setFilters({ requiredSockets: next.length > 0 ? next : null });
+        },
+        [filters.requiredSockets, setFilters],
+    );
+
     const filteredItems = useMemo(
         () => processItems(items, filters as any, activeSorts),
         [items, filters, activeSorts],
@@ -230,5 +249,7 @@ export function useFilters(items: GearItem[]) {
         toggleShowStatHats,
         toggleShowDeveloperGear,
         toggleSource,
+        toggleRequiredSocket,
+        toggleSetsOnly,
     };
 }

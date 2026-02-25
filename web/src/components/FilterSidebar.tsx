@@ -1,12 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { MultiRangeSlider } from "./MultiRangeSlider";
 import {
     SCHOOL_COLORS,
     SCHOOL_EMOJI,
     RARITY_LABELS,
     RARITY_COLORS,
+    SOCKET_LABELS,
+    formatStatName,
 } from "@/lib/constants";
+
+
 
 interface FilterSidebarProps {
     filterOptions: {
@@ -31,6 +36,10 @@ interface FilterSidebarProps {
     onClear: () => void;
     activeSources: string[];
     onToggleSource: (source: string) => void;
+    activeSockets: string[];
+    onToggleSocket: (socket: string) => void;
+    setsOnly: boolean;
+    onToggleSetsOnly: () => void;
 }
 
 export function FilterSidebar({
@@ -51,12 +60,18 @@ export function FilterSidebar({
     onClear,
     activeSources,
     onToggleSource,
+    activeSockets,
+    onToggleSocket,
+    setsOnly,
+    onToggleSetsOnly,
 }: FilterSidebarProps) {
     const hasActiveFilters =
         activeSchools.length > 0 ||
         excludeSchools?.length > 0 ||
         activeRarities.length > 0 ||
         excludeRarities?.length > 0 ||
+        activeSockets.length > 0 ||
+        setsOnly ||
         levelMin > 0 ||
         levelMax > 0;
 
@@ -111,6 +126,19 @@ export function FilterSidebar({
                     ))}
                 </FilterSection>
 
+
+                {/* Jewel Sockets */}
+                <FilterSection title="Jewel Sockets">
+                    {Object.entries(SOCKET_LABELS).map(([socketKey, socketLabel]) => (
+                        <FilterChip
+                            key={socketKey}
+                            label={socketLabel}
+                            active={activeSockets.includes(socketKey)}
+                            onClick={() => onToggleSocket(socketKey)}
+                        />
+                    ))}
+                </FilterSection>
+
                 {/* Acquisition Source */}
                 <FilterSection title="Acquisition Source">
                     {[
@@ -131,35 +159,34 @@ export function FilterSidebar({
 
                 {/* Level Range */}
                 <FilterSection title="Level">
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="number"
+                    <div className="w-full px-1 mb-2">
+                        <MultiRangeSlider
                             min={0}
                             max={filterOptions.maxLevel}
-                            value={levelMin || ""}
-                            placeholder="Min"
-                            onChange={(e) =>
-                                onLevelChange(parseInt(e.target.value) || 0, levelMax)
-                            }
-                            className="w-full rounded border border-border bg-surface-800 px-2 py-1 text-xs text-foreground outline-none focus:border-primary-500"
-                        />
-                        <span className="text-foreground/30 text-xs">—</span>
-                        <input
-                            type="number"
-                            min={0}
-                            max={filterOptions.maxLevel}
-                            value={levelMax || ""}
-                            placeholder="Max"
-                            onChange={(e) =>
-                                onLevelChange(levelMin, parseInt(e.target.value) || 0)
-                            }
-                            className="w-full rounded border border-border bg-surface-800 px-2 py-1 text-xs text-foreground outline-none focus:border-primary-500"
+                            value={[levelMin || 0, levelMax || filterOptions.maxLevel]}
+                            onChange={(minVal, maxVal) => onLevelChange(minVal, maxVal)}
                         />
                     </div>
                 </FilterSection>
 
                 {/* Advanced Options */}
-                <FilterSection title="Advanced Options">
+                <FilterSection title="Advanced Options" defaultClosed>
+                    <label className="flex items-center gap-2 cursor-pointer group mb-1.5 w-full">
+                        <div className="relative flex items-center justify-center w-4 h-4 rounded border border-border bg-surface-800 transition-colors group-hover:border-primary-500">
+                            <input
+                                type="checkbox"
+                                checked={setsOnly}
+                                onChange={onToggleSetsOnly}
+                                className="absolute opacity-0 cursor-pointer w-full h-full"
+                            />
+                            {setsOnly && (
+                                <svg className="w-2.5 h-2.5 text-primary-500 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                            )}
+                        </div>
+                        <span className="text-sm text-foreground/80 select-none group-hover:text-foreground">Sets Only (Hide generic gear)</span>
+                    </label>
                     <label className="flex items-center gap-2 cursor-pointer group mb-1.5">
                         <div className="relative flex items-center justify-center w-4 h-4 rounded border border-border bg-surface-800 transition-colors group-hover:border-primary-500">
                             <input
@@ -204,10 +231,24 @@ export function FilterSidebar({
 function FilterSection({
     title,
     children,
+    defaultClosed,
 }: {
     title: string;
     children: React.ReactNode;
+    defaultClosed?: boolean;
 }) {
+    if (defaultClosed) {
+        return (
+            <details className="group [&::-webkit-details-marker]:hidden">
+                <summary className="mb-2 text-xs font-semibold uppercase tracking-widest text-foreground/50 cursor-pointer list-none flex items-center justify-between hover:text-foreground/80 transition-colors">
+                    {title}
+                    <span className="text-lg leading-none transition-transform group-open:rotate-180">▾</span>
+                </summary>
+                <div className="flex flex-wrap gap-1.5">{children}</div>
+            </details>
+        );
+    }
+
     return (
         <div>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-foreground/50">

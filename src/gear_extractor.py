@@ -140,6 +140,32 @@ class GearExtractor:
                     item.display_name = self.locale.get_by_key(
                         item.display_name_key
                     )
+
+                # Parse source_path for nomenclature metadata
+                p = item.source_path or ""
+                if "/" in p:
+                    p = p.split("/")[-1]
+                p_lower_full = p.lower()
+                
+                parts = p.replace("_", "-").split("-")
+                if p_lower_full:
+                    if "crown" in p_lower_full:
+                        item.acquisition_type = "Crowns"
+                    elif "drop" in p_lower_full:
+                        item.acquisition_type = "Drop"
+                    elif "craft" in p_lower_full:
+                        item.acquisition_type = "Crafted"
+                    elif "pvp" in p_lower_full or "arena" in p_lower_full:
+                        item.acquisition_type = "PVP"
+                    elif "vendor" in p_lower_full:
+                        item.acquisition_type = "Vendor"
+
+                for part in parts:
+                    if re.match(r"^[ST]\d+$", part):
+                        item.season_id = part
+                    elif re.match(r"^\d{3}$", part):
+                        item.set_id = part
+
                 items.append(item)
 
         elapsed = time.time() - start

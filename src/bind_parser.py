@@ -179,6 +179,9 @@ class GearItem:
     name: str = ""                    # Internal item name
     display_name_key: str = ""        # Locale key (e.g. Items_00008758)
     display_name: str = ""             # Resolved display name
+    acquisition_type: str = ""        # Craft, Crowns, Drop, etc.
+    season_id: str = ""               # S61, T11, etc.
+    set_id: str = ""                  # e.g. 006
     item_type: str = ""               # Equipment slot (Hat, Robe, etc.)
     wand_subtype: str = ""            # Wand weapon subtype (Spear, Staff, etc.)
     school: str = ""                  # Magic school
@@ -233,6 +236,12 @@ class GearItem:
             "level_req": self.level_req,
             "type_source": self.type_source,
         }
+        if self.acquisition_type:
+            d["acquisition_type"] = self.acquisition_type
+        if self.season_id:
+            d["season_id"] = self.season_id
+        if self.set_id:
+            d["set_id"] = self.set_id
         if self.wand_subtype:
             d["wand_subtype"] = self.wand_subtype
 

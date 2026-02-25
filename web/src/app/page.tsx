@@ -29,6 +29,8 @@ export default function HomePage() {
     toggleShowStatHats,
     toggleShowDeveloperGear,
     toggleSource,
+    toggleRequiredSocket,
+    toggleSetsOnly,
   } = useFilters(items);
 
   const availableStats = useMemo(() => {
@@ -95,6 +97,10 @@ export default function HomePage() {
         onClear={clearFilters}
         activeSources={filters.sources}
         onToggleSource={toggleSource}
+        activeSockets={filters.requiredSockets}
+        onToggleSocket={toggleRequiredSocket}
+        setsOnly={filters.setsOnly}
+        onToggleSetsOnly={toggleSetsOnly}
       />
       <div className="flex flex-1 flex-col gap-4 min-w-0">
         {/* Header Row: Tabs + Search + Columns */}

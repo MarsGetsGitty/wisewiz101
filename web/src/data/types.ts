@@ -17,6 +17,9 @@ export interface GearItem {
     level_req: number;
     type_source: string;
     raw_stats: Record<string, number>;
+    acquisition_type?: string;
+    season_id?: string;
+    set_id?: string;
 }
 
 /** Filter state for the gear browser */
@@ -32,6 +35,9 @@ export interface GearFilters {
     levelMax: number;
     showStatHats: boolean;
     showDeveloperGear: boolean;
+    sources: string[];
+    requiredSockets: string[];
+    setsOnly: boolean;
 }
 
 /** Sort configuration */
