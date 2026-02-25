@@ -12,14 +12,17 @@ interface ColumnPickerProps {
     onClearColumns: () => void;
 }
 
-// Logic to group stats for the dropdown (Option C Hybrid Taxonomy)
+// Logic to group stats for the dropdown (Option A: Group by Mechanics)
 function categorizeStats(stats: string[]) {
     const groups: Record<string, string[]> = {
         "Core Vitals": [],
-        "Universal Offense": [],
-        "School Offense": [],
-        "Universal Defense": [],
-        "School Defense": [],
+        "Damage %": [],
+        "Flat Damage": [],
+        "Armor Piercing": [],
+        "Critical Hit": [],
+        "Resist %": [],
+        "Flat Resist": [],
+        "Block": [],
         "Utility & Conversion": [],
         "Other": []
     };
@@ -29,24 +32,26 @@ function categorizeStats(stats: string[]) {
         if (["MaxHealth", "MaxMana", "PowerPip", "Archmastery", "ShadowPipRating"].includes(stat)) {
             groups["Core Vitals"].push(stat);
         }
-        // Offense
-        else if (stat.includes("Damage") || stat.includes("ArmorPiercing") || stat.includes("CriticalHit")) {
-            if (stat.startsWith("All")) {
-                groups["Universal Offense"].push(stat);
-            } else {
-                groups["School Offense"].push(stat);
-            }
+        // Offense Mechanics
+        else if (stat.includes("FlatDamage")) {
+            groups["Flat Damage"].push(stat);
+        } else if (stat.includes("Damage")) { // Has to execute after FlatDamage
+            groups["Damage %"].push(stat);
+        } else if (stat.includes("ArmorPiercing")) {
+            groups["Armor Piercing"].push(stat);
+        } else if (stat.includes("CriticalHit")) {
+            groups["Critical Hit"].push(stat);
         }
-        // Defense
-        else if (stat.includes("Resist") || stat.includes("Block") || stat.includes("ReduceDamage")) {
-            if (stat.startsWith("All") || stat === "StunResistance") {
-                groups["Universal Defense"].push(stat);
-            } else {
-                groups["School Defense"].push(stat);
-            }
+        // Defense Mechanics
+        else if (stat.includes("FlatReduceDamage")) {
+            groups["Flat Resist"].push(stat);
+        } else if (stat.includes("ReduceDamage") || stat.includes("Resist") || stat === "StunResistance") {
+            groups["Resist %"].push(stat);
+        } else if (stat.includes("Block")) {
+            groups["Block"].push(stat);
         }
         // Utility
-        else if (stat.includes("Accuracy") || stat.includes("PipConversion")) {
+        else if (stat.includes("Accuracy") || stat.includes("PipConversion") || stat.includes("Healing")) {
             groups["Utility & Conversion"].push(stat);
         }
         // Fallback
