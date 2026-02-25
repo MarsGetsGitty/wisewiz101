@@ -29,7 +29,7 @@ export function TypeTabs({
     );
 
     return (
-        <div className="flex w-full overflow-x-auto border-b border-border pb-px scrollbar-hide">
+        <div className="flex w-full overflow-x-auto pb-px scrollbar-hide">
             <div className="flex min-w-max gap-1 px-1">
                 {tabs.map((tab) => {
                     const isActive = tab.id === activeType;

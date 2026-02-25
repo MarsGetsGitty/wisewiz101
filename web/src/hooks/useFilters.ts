@@ -20,6 +20,7 @@ export function useFilters(items: GearItem[]) {
         columns: parseAsArrayOf(parseAsString).withDefault([]),
         showStatHats: parseAsBoolean.withDefault(false),
         showDeveloperGear: parseAsBoolean.withDefault(false),
+        sources: parseAsArrayOf(parseAsString).withDefault([]),
     });
 
     const activeSorts: SortConfig[] = useMemo(() => {
@@ -49,14 +50,14 @@ export function useFilters(items: GearItem[]) {
             let nextExc = [...filters.excludeSchools];
 
             if (nextInc.includes(school)) {
-                // Was included, change to exclude
+                // Was included -> change to exclude
                 nextInc = nextInc.filter((s) => s !== school);
                 nextExc.push(school);
             } else if (nextExc.includes(school)) {
-                // Was excluded, change to none
+                // Was excluded -> change to none
                 nextExc = nextExc.filter((s) => s !== school);
             } else {
-                // Was none, change to include
+                // Was none -> change to include
                 nextInc.push(school);
             }
 
@@ -197,6 +198,16 @@ export function useFilters(items: GearItem[]) {
         setFilters({ columns: null });
     }, [setFilters]);
 
+    const toggleSource = useCallback(
+        (source: string) => {
+            const next = filters.sources.includes(source)
+                ? filters.sources.filter(s => s !== source)
+                : [...filters.sources, source];
+            setFilters({ sources: next.length > 0 ? next : null });
+        },
+        [filters.sources, setFilters],
+    );
+
     const filteredItems = useMemo(
         () => processItems(items, filters as any, activeSorts),
         [items, filters, activeSorts],
@@ -218,5 +229,6 @@ export function useFilters(items: GearItem[]) {
         clearFilters,
         toggleShowStatHats,
         toggleShowDeveloperGear,
+        toggleSource,
     };
 }

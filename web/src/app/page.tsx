@@ -28,6 +28,7 @@ export default function HomePage() {
     clearFilters,
     toggleShowStatHats,
     toggleShowDeveloperGear,
+    toggleSource,
   } = useFilters(items);
 
   const availableStats = useMemo(() => {
@@ -75,7 +76,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:flex-row md:p-6">
+    <div className="flex flex-col gap-6 p-4 md:flex-row md:p-6 md:h-[calc(100vh-73px)] md:overflow-hidden">
       <FilterSidebar
         filterOptions={filterOptions}
         activeSchools={filters.schools}
@@ -92,29 +93,32 @@ export default function HomePage() {
         showDeveloperGear={filters.showDeveloperGear}
         onToggleShowDeveloperGear={toggleShowDeveloperGear}
         onClear={clearFilters}
+        activeSources={filters.sources}
+        onToggleSource={toggleSource}
       />
       <div className="flex flex-1 flex-col gap-4 min-w-0">
-        <TypeTabs
-          availableTypes={filterOptions.types}
-          activeType={filters.types[0] || null} // nuqs still parses array, we treat it as single-select
-          onSelectType={toggleType}
-        />
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="w-full sm:flex-1">
-            <SearchBar
-              onSearch={setSearch}
-              resultCount={filteredItems.length}
-              totalCount={items.length}
+        {/* Header Row: Tabs + Search + Columns */}
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between border-b border-border gap-4 shrink-0">
+          <div className="w-full xl:flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+            <TypeTabs
+              availableTypes={filterOptions.types}
+              activeType={filters.types[0] || null} // nuqs still parses array, we treat it as single-select
+              onSelectType={toggleType}
             />
           </div>
-          <ColumnPicker
-            availableStats={availableStats}
-            activeColumns={filters.columns}
-            defaultStats={defaultStats}
-            onToggleColumn={toggleColumn}
-            onSetColumns={setColumns}
-            onClearColumns={clearColumns}
-          />
+          <div className="flex items-center gap-3 w-full xl:w-auto pb-3 xl:pb-2 shrink-0">
+            <div className="flex-1 xl:w-64">
+              <SearchBar onSearch={setSearch} />
+            </div>
+            <ColumnPicker
+              availableStats={availableStats}
+              activeColumns={filters.columns}
+              defaultStats={defaultStats}
+              onToggleColumn={toggleColumn}
+              onSetColumns={setColumns}
+              onClearColumns={clearColumns}
+            />
+          </div>
         </div>
         <GearTable
           items={filteredItems}

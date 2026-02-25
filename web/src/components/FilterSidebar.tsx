@@ -29,6 +29,8 @@ interface FilterSidebarProps {
     showDeveloperGear: boolean;
     onToggleShowDeveloperGear: () => void;
     onClear: () => void;
+    activeSources: string[];
+    onToggleSource: (source: string) => void;
 }
 
 export function FilterSidebar({
@@ -47,6 +49,8 @@ export function FilterSidebar({
     showDeveloperGear,
     onToggleShowDeveloperGear,
     onClear,
+    activeSources,
+    onToggleSource,
 }: FilterSidebarProps) {
     const hasActiveFilters =
         activeSchools.length > 0 ||
@@ -59,7 +63,7 @@ export function FilterSidebar({
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <aside className="w-full shrink-0 md:w-64">
+        <aside className="w-full shrink-0 md:w-64 md:h-full md:overflow-y-auto md:pr-2 custom-scrollbar">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex w-full items-center justify-between rounded border border-border bg-surface-800 px-4 py-2.5 text-sm font-medium hover:bg-surface-700 md:hidden"
@@ -86,6 +90,7 @@ export function FilterSidebar({
                             key={school}
                             label={`${SCHOOL_EMOJI[school] || ""} ${school}`}
                             active={activeSchools.includes(school)}
+                            excluded={excludeSchools?.includes(school)}
                             color={SCHOOL_COLORS[school]}
                             onClick={() => onToggleSchool(school)}
                         />
@@ -102,6 +107,24 @@ export function FilterSidebar({
                             excluded={excludeRarities?.includes(rarity)}
                             color={RARITY_COLORS[rarity]}
                             onClick={() => onToggleRarity(rarity)}
+                        />
+                    ))}
+                </FilterSection>
+
+                {/* Acquisition Source */}
+                <FilterSection title="Acquisition Source">
+                    {[
+                        { id: "Crowns", title: "👑 Crowns" },
+                        { id: "Drop", title: "⚔️ Drop" },
+                        { id: "Crafted", title: "🔨 Crafted" },
+                        { id: "Vendor", title: "💰 Vendor" },
+                        { id: "PVP", title: "🛡️ PVP" },
+                    ].map((src) => (
+                        <FilterChip
+                            key={src.id}
+                            label={src.title}
+                            active={activeSources?.includes(src.id)}
+                            onClick={() => onToggleSource(src.id)}
                         />
                     ))}
                 </FilterSection>

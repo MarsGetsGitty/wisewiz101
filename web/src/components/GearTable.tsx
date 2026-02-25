@@ -20,25 +20,18 @@ interface GearTableProps {
 
 
 const ROW_HEIGHT = 44;
-const OVERSCAN = 10;
+const ITEMS_PER_PAGE = 150;
 
 export function GearTable({ items, sorts, activeStats, defaultStats, onSort, activeType }: GearTableProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
     const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
     const [scrollTop, setScrollTop] = useState(0);
-    const [containerHeight, setContainerHeight] = useState(600);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        const el = containerRef.current;
-        if (!el) return;
-
-        const observer = new ResizeObserver((entries) => {
-            setContainerHeight(entries[0].contentRect.height);
-        });
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
+        setCurrentPage(1);
+    }, [items, sorts, activeStats, activeType]);
 
     const handleScroll = useCallback(() => {
         if (containerRef.current) {
@@ -46,12 +39,9 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort, act
         }
     }, []);
 
-    const totalHeight = items.length * ROW_HEIGHT;
-    const startIdx = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
-    const endIdx = Math.min(
-        items.length,
-        Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + OVERSCAN,
-    );
+    const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIdx = Math.min(items.length, startIdx + ITEMS_PER_PAGE);
     const visibleItems = items.slice(startIdx, endIdx);
 
     // Use user-selected columns, or the stable default columns from the full dataset
@@ -89,12 +79,11 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort, act
     const tableWidth = Math.max(1140, METADATA_WIDTH + displayStats.length * STAT_COLUMN_WIDTH);
 
     return (
-        <div className="relative flex-1 min-h-0">
+        <div className="relative flex-1 min-h-0 flex flex-col rounded border border-border bg-surface-900/50 overflow-hidden">
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
-                className="h-full overflow-auto rounded border border-border bg-surface-900/50"
-                style={{ maxHeight: "calc(100vh - 200px)" }}
+                className="flex-1 min-h-0 overflow-auto"
             >
                 <table className="max-w-none min-w-max table-fixed border-collapse" style={{ width: tableWidth }}>
                     <thead className="sticky top-0 z-30 bg-surface-900">
@@ -143,13 +132,6 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort, act
                         </tr>
                     </thead>
                     <tbody>
-                        {/* Spacer for virtual scroll */}
-                        {startIdx > 0 && (
-                            <tr style={{ height: startIdx * ROW_HEIGHT }}>
-                                <td colSpan={TABLE_COLUMNS.length + displayStats.length} />
-                            </tr>
-                        )}
-
                         {visibleItems.map((item) => (
                             <tr
                                 key={item.source_path}
@@ -185,15 +167,40 @@ export function GearTable({ items, sorts, activeStats, defaultStats, onSort, act
                                 ))}
                             </tr>
                         ))}
-
-                        {/* Bottom spacer */}
-                        {endIdx < items.length && (
-                            <tr style={{ height: (items.length - endIdx) * ROW_HEIGHT }}>
-                                <td colSpan={TABLE_COLUMNS.length + displayStats.length} />
-                            </tr>
-                        )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Pagination Footer */}
+            <div className="flex items-center justify-between border-t border-border bg-surface-900 px-4 py-3 shrink-0">
+                <div className="text-sm text-foreground/60 hidden sm:block">
+                    Showing <span className="font-medium text-foreground">{items.length > 0 ? startIdx + 1 : 0}</span> to <span className="font-medium text-foreground">{endIdx}</span> of <span className="font-medium text-foreground">{items.length}</span> results
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <button
+                        onClick={() => {
+                            setCurrentPage(p => Math.max(1, p - 1));
+                            scrollToTop();
+                        }}
+                        disabled={currentPage === 1}
+                        className="rounded border border-border bg-surface-800 px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-surface-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <div className="flex items-center gap-1 px-2 text-sm text-foreground/80">
+                        Page <span className="font-medium text-foreground">{currentPage}</span> of <span className="font-medium text-foreground">{totalPages}</span>
+                    </div>
+                    <button
+                        onClick={() => {
+                            setCurrentPage(p => Math.min(totalPages, p + 1));
+                            scrollToTop();
+                        }}
+                        disabled={currentPage === totalPages}
+                        className="rounded border border-border bg-surface-800 px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-surface-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
 
             {/* Scroll-to-Top FAB */}
